@@ -15,10 +15,10 @@ public class UserStorageInMemoryImpl implements UserStorage {
 
     @Override
     public User create(User user) {
-        Long newId = makeId();
-        user.setId(newId);
-        log.info("New User successfully created");
-        return users.put(newId, user);
+        user.setId(makeId());
+        log.info("New User was successfully created");
+        users.put(user.getId(), user);
+        return user;
     }
 
     @Override
@@ -38,7 +38,8 @@ public class UserStorageInMemoryImpl implements UserStorage {
             throw new MissingObjectException(String.format(MISSING_USER_ID, userId));
         }
         log.info("The User successfully updated");
-        return users.put(userId, user);
+        users.put(userId, user);
+        return user;
     }
 
     @Override
@@ -55,4 +56,5 @@ public class UserStorageInMemoryImpl implements UserStorage {
     private Long makeId() {
         return ++id;
     }
+
 }

@@ -1,11 +1,14 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.user.dto.UserDto;
 
-/**
- * TODO Sprint add-controllers.
- */
+import javax.validation.Valid;
+import java.util.Collection;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/users")
@@ -13,23 +16,31 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User create(@RequestBody User user) {
-        return userService.create(user);
+    public UserDto create(@Valid @RequestBody UserDto userDto) {
+        return userService.create(userDto);
     }
 
-    @GetMapping
-    public User read(@RequestBody Long userId) {
+    @GetMapping("/{id}")
+    public UserDto read(@PathVariable(value = "id") Long userId) {
         return userService.read(userId);
     }
 
-    @PatchMapping
-    public User update(@RequestBody User user) {
-        return userService.update(user);
+    @PatchMapping("/{id}")
+    public UserDto update(@PathVariable(value = "id") Long userId,
+                          @Valid @RequestBody UserDto userDto
+    ) {
+        return userService.update(userId, userDto);
     }
 
-    @DeleteMapping
-    public User delete(@RequestBody Long userId) {
-        return userService.delete(userId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable(value = "id") Long userId) {
+        userService.delete(userId);
+        return ResponseEntity.ok("Deleted");
+    }
+
+    @GetMapping
+    public Collection<UserDto> findAll() {
+        return userService.findAll();
     }
 
 }
