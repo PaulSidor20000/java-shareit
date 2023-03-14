@@ -1,6 +1,6 @@
 package ru.practicum.shareit.exceptions;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 import java.util.HashMap;
-
 
 @Slf4j
 @RestControllerAdvice
@@ -28,13 +27,9 @@ public class ErrorHandler {
         );
     }
 
-    @Getter
+    @Data
     private static class ErrorResponse<T> {
-        T errors;
-
-        public ErrorResponse(T errors) {
-            this.errors = errors;
-        }
+        final T errors;
     }
 
 }

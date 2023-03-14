@@ -8,4 +8,6 @@ public interface UserStorage {
     User update(User user);
     void delete(Long userId);
     List<User> findAll();
+    boolean checkId(Long userId);
+    boolean checkEmail(String email);
 }

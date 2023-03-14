@@ -53,6 +53,16 @@ public class UserStorageInMemoryImpl implements UserStorage {
         return new ArrayList<>(users.values());
     }
 
+    @Override
+    public boolean checkId(Long userId) {
+        return users.containsKey(userId);
+    }
+
+    @Override
+    public boolean checkEmail(String email) {
+        return users.values().stream().anyMatch(user -> user.getEmail().equals(email));
+    }
+
     private Long makeId() {
         return ++id;
     }
