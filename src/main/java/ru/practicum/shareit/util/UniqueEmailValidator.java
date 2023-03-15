@@ -7,7 +7,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @RequiredArgsConstructor
-public class UserEmailValidator implements ConstraintValidator<NotDuplicate, String> {
+public class UniqueEmailValidator implements ConstraintValidator<UniqueEmail, String> {
     private final UserStorage userStorage;
 
     @Override

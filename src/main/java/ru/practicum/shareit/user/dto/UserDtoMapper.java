@@ -21,7 +21,7 @@ public class UserDtoMapper {
     }
 
     public User mapToUserModel(Long userId, UserDto userDto) {
-        User user = userStorage.read(userDto.getId());
+        User user = userStorage.read(userId);
         return User.builder()
                 .id(userId)
                 .email(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail())

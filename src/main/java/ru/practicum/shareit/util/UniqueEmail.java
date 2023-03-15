@@ -9,9 +9,9 @@ import java.lang.annotation.Target;
 
 @Target(value = ElementType.FIELD)
 @Retention(value = RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = UserEmailValidator.class)
-public @interface NotDuplicate {
-    String message() default "Email exists in database";
+@Constraint(validatedBy = UniqueEmailValidator.class)
+public @interface UniqueEmail {
+    String message() default "email exists in database";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
