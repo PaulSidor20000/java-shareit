@@ -14,36 +14,38 @@ import java.util.*;
 public class ErrorHandler {
 
     @ExceptionHandler
-    // @ResponseStatus(HttpStatus.BAD_REQUEST) //    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<Map<String, String>> validationHandler(MethodArgumentNotValidException errors) {
-        if (Objects.equals(Objects.requireNonNull(errors.getFieldError()).getDefaultMessage(), "email exists in database")) {
-            return ResponseEntity.status(409).body(errors.getFieldErrors()
-                    .stream()
-                    .collect(HashMap::new,
-                            (errorsSummery, fieldError) ->
-                                    errorsSummery.put(fieldError.getField(), fieldError.getDefaultMessage()),
-                            HashMap::putAll));
-        }
-        return ResponseEntity.status(400).body(errors.getFieldErrors()
-                .stream()
-                .collect(HashMap::new,
-                        (errorsSummery, fieldError) ->
-                                errorsSummery.put(fieldError.getField(), fieldError.getDefaultMessage()),
-                        HashMap::putAll));
+    public ResponseEntity<Map<String, String>> validationAnnotationHandler(MethodArgumentNotValidException error) {
+        log.warn("error: {}", error.getMessage());
+        return ResponseEntity.status(400).body(error.getFieldErrors().stream()
+                .collect(
+                        HashMap::new,
+                        (errors, fieldError) -> errors.put(fieldError.getField(), fieldError.getDefaultMessage()),
+                        HashMap::putAll
+                ));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> validationHandler(EmailDuplicateException errors) {
-            return ResponseEntity.status(409).body(Map.of("error", errors.getMessage()));
+    public ResponseEntity<Map<String, String>> validationEmailHandler(EmailDuplicateException error) {
+        log.warn("error: {}", error.getMessage());
+        return ResponseEntity.status(409).body(Map.of("error", error.getMessage()));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> validationHandler(MissingObjectException errors) {
-            return ResponseEntity.status(404).body(Map.of("error", errors.getMessage()));
+    public ResponseEntity<Map<String, String>> validationObjectHandler(MissingObjectException error) {
+        log.warn("error: {}", error.getMessage());
+        return ResponseEntity.status(404).body(Map.of("error", error.getMessage()));
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> validationHandler(MissingRequestHeaderException errors) {
-            return ResponseEntity.status(400).body(Map.of(errors.getHeaderName(), Objects.requireNonNull(errors.getMessage())));
+    public ResponseEntity<Map<String, String>> validationHeaderHandler(MissingRequestHeaderException error) {
+        log.warn("error: {}", error.getMessage());
+        return ResponseEntity.status(400).body(Map.of(error.getHeaderName(), Objects.requireNonNull(error.getMessage())));
     }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> otherServerErrorsHandler(Throwable error) {
+        log.warn("error: {}", error.getMessage());
+        return ResponseEntity.status(500).body(Map.of("Server error", error.getMessage()));
+    }
+
 }

@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface UserStorage {
     User create(User user);
@@ -10,7 +11,7 @@ public interface UserStorage {
     User update(User user);
     void delete(Long userId);
     Collection<User> findAll();
-    User findUserByEmail(String email);
+    Optional<User> findUserByEmail(String email);
     boolean checkId(Long userId);
     boolean checkEmail(String email);
 }

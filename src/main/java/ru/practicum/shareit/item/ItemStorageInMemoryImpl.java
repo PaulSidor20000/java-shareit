@@ -53,12 +53,13 @@ public class ItemStorageInMemoryImpl implements ItemStorage {
 
     @Override
     public Collection<Item> search(String searchRequest) {
-        if (searchRequest.equals("")) {
+        final String query = searchRequest.toLowerCase();
+        if (query.equals("")) {
             return Collections.emptyList();
         }
         return items.values().stream()
-                .filter(item -> item.getName().toLowerCase().contains(searchRequest.toLowerCase())
-                        || item.getDescription().toLowerCase().contains(searchRequest.toLowerCase()))
+                .filter(item -> item.getName().toLowerCase().contains(query)
+                        || item.getDescription().toLowerCase().contains(query))
                 .filter(item -> item.getAvailable().equals(true))
                 .collect(Collectors.toList());
     }

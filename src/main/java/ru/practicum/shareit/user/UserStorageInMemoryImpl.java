@@ -44,11 +44,10 @@ public class UserStorageInMemoryImpl implements UserStorage {
     }
 
     @Override
-    public User findUserByEmail(String email) {
+    public Optional<User> findUserByEmail(String email) {
         return users.values().stream()
                 .filter(user -> user.getEmail().equals(email))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     @Override
@@ -58,7 +57,9 @@ public class UserStorageInMemoryImpl implements UserStorage {
 
     @Override
     public boolean checkEmail(String email) {
-        return users.values().stream().anyMatch(user -> user.getEmail().equals(email));
+        return users.values()
+                .stream()
+                .anyMatch(user -> user.getEmail().equals(email));
     }
 
     private Long makeId() {

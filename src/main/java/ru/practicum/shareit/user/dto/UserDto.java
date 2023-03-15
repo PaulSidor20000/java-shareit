@@ -2,7 +2,6 @@ package ru.practicum.shareit.user.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.util.UniqueEmail;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -16,6 +15,5 @@ public class UserDto {
     private String name;
     @Email(regexp = "^[a-z0-9-_.%]+@[a-z0-9-_]+.[a-z]+$", flags = Pattern.Flag.CASE_INSENSITIVE, message = "email is not valid")
     @NotBlank(message = "email must be specified")
-    @UniqueEmail
     private String email;
 }

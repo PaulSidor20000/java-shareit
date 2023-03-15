@@ -22,6 +22,10 @@ public class UserServiceImpl implements UserService {
     private static final String DUPLICATED_EMAIL = "Duplicated email found: %s";
 
     public UserDto create(UserDto userDto) {
+        if (userStorage.checkEmail(userDto.getEmail())) {
+            log.warn(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
+            throw new EmailDuplicateException(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
+        }
         User user = userDtoMapper.mapToNewUser(userDto);
         return userDtoMapper.mapToUserDto(userStorage.create(user));
     }
@@ -39,13 +43,17 @@ public class UserServiceImpl implements UserService {
             log.warn(String.format(FAILED_USER_ID, userId));
             throw new MissingObjectException(String.format(FAILED_USER_ID, userId));
         }
-        if (userDto.getEmail() != null && checkEmailDuplication(userId, userDto)) {
-            log.warn(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
-            throw new EmailDuplicateException(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
-        }
+        userStorage.findUserByEmail(userDto.getEmail())
+                .ifPresent(user -> {
+                    if (!user.getId().equals(userId)) {
+                        log.warn(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
+                        throw new EmailDuplicateException(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
+                    }
+                });
         User user = userDtoMapper.mapToUserModel(userId, userDto);
         return userDtoMapper.mapToUserDto(userStorage.update(user));
     }
+
 
     public void delete(Long userId) {
         userStorage.delete(userId);
@@ -55,14 +63,6 @@ public class UserServiceImpl implements UserService {
         return userStorage.findAll().stream()
                 .map(userDtoMapper::mapToUserDto)
                 .collect(Collectors.toList());
-    }
-
-    private boolean checkEmailDuplication(Long userId, UserDto userDto) {
-        User user = userStorage.findUserByEmail(userDto.getEmail());
-        if (user != null && user.getId().equals(userId)) {
-            return false;
-        }
-        return userStorage.checkEmail(userDto.getEmail());
     }
 
 }
