@@ -3,6 +3,7 @@ package ru.practicum.shareit.exceptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -31,8 +32,18 @@ public class ErrorHandler {
                         HashMap::putAll));
     }
 
-    @ExceptionHandler({EmailDuplicateException.class, MissingObjectException.class})
-    public ResponseEntity<Map<String, String>> validationHandler(RuntimeException errors) {
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> validationHandler(EmailDuplicateException errors) {
             return ResponseEntity.status(409).body(Map.of("error", errors.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> validationHandler(MissingObjectException errors) {
+            return ResponseEntity.status(404).body(Map.of("error", errors.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> validationHandler(MissingRequestHeaderException errors) {
+            return ResponseEntity.status(400).body(Map.of(errors.getHeaderName(), Objects.requireNonNull(errors.getMessage())));
     }
 }

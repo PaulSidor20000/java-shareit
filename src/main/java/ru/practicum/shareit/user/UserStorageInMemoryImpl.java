@@ -4,6 +4,7 @@ import java.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.user.model.User;
 
 @Slf4j
 @Repository("usersInMemory")
@@ -26,21 +27,20 @@ public class UserStorageInMemoryImpl implements UserStorage {
 
     @Override
     public User update(User user) {
-        Long userId = user.getId();
-        users.put(userId, user);
-        log.info("The User successfully updated");
+        users.put(user.getId(), user);
+        log.info("The User was successfully updated");
         return user;
     }
 
     @Override
     public void delete(Long userId) {
         users.remove(userId);
-        log.info("The User successfully deleted");
+        log.info("The User was successfully deleted");
     }
 
     @Override
-    public List<User> findAll() {
-        return new ArrayList<>(users.values());
+    public Collection<User> findAll() {
+        return users.values();
     }
 
     @Override

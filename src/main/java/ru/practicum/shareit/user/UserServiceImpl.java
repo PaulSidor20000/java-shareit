@@ -7,6 +7,7 @@ import ru.practicum.shareit.exceptions.EmailDuplicateException;
 import ru.practicum.shareit.exceptions.MissingObjectException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserDtoMapper;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
     private final UserDtoMapper userDtoMapper;
-    private static final String MISSING_USER_ID = "Failed user id: %s";
+    private static final String FAILED_USER_ID = "Failed user id: %s";
     private static final String DUPLICATED_EMAIL = "Duplicated email found: %s";
 
     public UserDto create(UserDto userDto) {
@@ -29,14 +30,14 @@ public class UserServiceImpl implements UserService {
         if (userStorage.checkId(userId)) {
             return userDtoMapper.mapToUserDto(userStorage.read(userId));
         }
-        log.warn(String.format(MISSING_USER_ID, userId));
-        throw new MissingObjectException(String.format(MISSING_USER_ID, userId));
+        log.warn(String.format(FAILED_USER_ID, userId));
+        throw new MissingObjectException(String.format(FAILED_USER_ID, userId));
     }
 
     public UserDto update(Long userId, UserDto userDto) {
         if (!userStorage.checkId(userId)) {
-            log.warn(String.format(MISSING_USER_ID, userId));
-            throw new MissingObjectException(String.format(MISSING_USER_ID, userId));
+            log.warn(String.format(FAILED_USER_ID, userId));
+            throw new MissingObjectException(String.format(FAILED_USER_ID, userId));
         }
         if (userDto.getEmail() != null && checkEmailDuplication(userId, userDto)) {
             log.warn(String.format(DUPLICATED_EMAIL, userDto.getEmail()));

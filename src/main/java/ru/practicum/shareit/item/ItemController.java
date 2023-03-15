@@ -1,12 +1,53 @@
 package ru.practicum.shareit.item;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.ItemDto;
 
-/**
- * TODO Sprint add-controllers.
- */
+import javax.validation.Valid;
+import java.util.Collection;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/items")
 public class ItemController {
+    private final ItemService itemService;
+
+    @PostMapping
+    public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                          @Valid @RequestBody ItemDto itemDto
+    ) {
+        return itemService.create(ownerId, itemDto);
+    }
+
+    @GetMapping("/{id}")
+    public ItemDto read(@PathVariable(value = "id") Long itemId) {
+        return itemService.read(itemId);
+    }
+
+    @PatchMapping("/{id}")
+    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+                          @PathVariable(value = "id") Long itemId,
+                          @RequestBody ItemDto itemDto
+    ) {
+        return itemService.update(ownerId, itemId, itemDto);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable(value = "id") Long itemId) {
+        itemService.delete(itemId);
+        return ResponseEntity.ok("Deleted");
+    }
+
+    @GetMapping
+    public Collection<ItemDto> findAllItemsOfOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+        return itemService.findAllItemsOfOwner(ownerId);
+    }
+
+    @GetMapping("/search")
+    public Collection<ItemDto> search(@RequestParam(value = "text") String searchRequest) {
+        return itemService.search(searchRequest);
+    }
+
 }

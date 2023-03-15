@@ -2,7 +2,7 @@ package ru.practicum.shareit.user.dto;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserStorage;
 
 import java.util.Collections;
