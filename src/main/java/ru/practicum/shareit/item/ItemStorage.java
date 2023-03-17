@@ -19,6 +19,6 @@ public interface ItemStorage {
 
     Long findOwnerIdByItemId(Long itemId);
 
-    boolean checkId(Long itemId);
+    boolean existsById(Long itemId);
 
 }

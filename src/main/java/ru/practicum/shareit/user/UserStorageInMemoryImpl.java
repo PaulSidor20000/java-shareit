@@ -51,7 +51,7 @@ public class UserStorageInMemoryImpl implements UserStorage {
     }
 
     @Override
-    public boolean checkId(Long userId) {
+    public boolean existsById(Long userId) {
         return users.containsKey(userId);
     }
 

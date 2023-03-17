@@ -3,7 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exceptions.MissingObjectException;
+import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -24,9 +24,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(Long ownerId, ItemDto itemDto) {
-        if (!userStorage.checkId(ownerId)) {
+        if (!userStorage.existsById(ownerId)) {
             log.warn(String.format(FAILED_OWNER_ID, ownerId));
-            throw new MissingObjectException(String.format(FAILED_OWNER_ID, ownerId));
+            throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
         Item item = itemDtoMapper.mapToNewItem(ownerId, itemDto);
         return itemDtoMapper.mapToItemDto(itemStorage.create(item));
@@ -34,22 +34,22 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto read(Long itemId) {
-        if (itemStorage.checkId(itemId)) {
+        if (itemStorage.existsById(itemId)) {
             return itemDtoMapper.mapToItemDto(itemStorage.read(itemId));
         }
         log.warn(String.format(FAILED_ITEM_ID, itemId));
-        throw new MissingObjectException(String.format(FAILED_ITEM_ID, itemId));
+        throw new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId));
     }
 
     @Override
     public ItemDto update(Long ownerId, Long itemId, ItemDto itemDto) {
-        if (!itemStorage.checkId(itemId)) {
+        if (!itemStorage.existsById(itemId)) {
             log.warn(String.format(FAILED_ITEM_ID, itemId));
-            throw new MissingObjectException(String.format(FAILED_ITEM_ID, itemId));
+            throw new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId));
         }
         if (!itemStorage.findOwnerIdByItemId(itemId).equals(ownerId)) {
             log.warn(String.format(FAILED_OWNER_ID, ownerId));
-            throw new MissingObjectException(String.format(FAILED_OWNER_ID, ownerId));
+            throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
         Item item = itemDtoMapper.mapToItemModel(ownerId, itemId, itemDto);
         return itemDtoMapper.mapToItemDto(itemStorage.update(item));

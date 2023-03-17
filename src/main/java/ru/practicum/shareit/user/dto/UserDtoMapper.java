@@ -26,7 +26,7 @@ public class UserDtoMapper {
                 .id(userId)
                 .email(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail())
                 .name(userDto.getName() == null ? user.getName() : userDto.getName())
-                .items(user.getItems())
+                .itemIds(user.getItemIds())
                 .build();
     }
 
@@ -34,7 +34,7 @@ public class UserDtoMapper {
         return User.builder()
                 .email(userDto.getEmail())
                 .name(userDto.getName())
-                .items(Collections.emptyList())
+                .itemIds(Collections.emptySet())
                 .build();
     }
 

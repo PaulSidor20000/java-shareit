@@ -65,7 +65,7 @@ public class ItemStorageInMemoryImpl implements ItemStorage {
     }
 
     @Override
-    public boolean checkId(Long itemId) {
+    public boolean existsById(Long itemId) {
         return items.containsKey(itemId);
     }
 

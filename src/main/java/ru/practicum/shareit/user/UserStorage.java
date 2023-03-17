@@ -18,7 +18,7 @@ public interface UserStorage {
 
     Optional<User> findUserByEmail(String email);
 
-    boolean checkId(Long userId);
+    boolean existsById(Long userId);
 
     boolean checkEmail(String email);
 }
