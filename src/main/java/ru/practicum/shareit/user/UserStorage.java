@@ -1,24 +1,12 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.data.repository.CrudRepository;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Collection;
 import java.util.Optional;
 
-public interface UserStorage {
-    User create(User user);
+public interface UserStorage extends CrudRepository<User, Long> {
 
-    User read(Long userId);
+    Optional<User> findUserByEmailContainingIgnoreCase(String email);
 
-    User update(User user);
-
-    void delete(Long userId);
-
-    Collection<User> findAll();
-
-    Optional<User> findUserByEmail(String email);
-
-    boolean existsById(Long userId);
-
-    boolean checkEmail(String email);
 }

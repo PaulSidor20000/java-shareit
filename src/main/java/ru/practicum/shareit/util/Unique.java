@@ -9,6 +9,4 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Unique {
     String message() default "Email exists in database";
-    Class<?>[] groups() default {};
-//    Class<? extends Payload>[] payload() default {};
 }

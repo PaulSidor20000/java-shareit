@@ -1,16 +1,31 @@
 package ru.practicum.shareit.util;
 
-import ru.practicum.shareit.user.dto.UserDto;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.stereotype.Component;
+import ru.practicum.shareit.user.UserStorage;
 
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
+import java.lang.reflect.Field;
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class UniqueProcessor implements BeanPostProcessor {
+    private UserStorage userStorage;
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        Field[] declaredFields = bean.getClass().getDeclaredFields();
+        for (Field declaredField : declaredFields) {
+            Unique unique = declaredField.getAnnotation(Unique.class);
+            if (unique != null) {
+                log.info("Found {} Annotation in {} class.", unique.getClass(), bean.getClass());
+                log.info(beanName);
 
-public class UniqueProcessor {
-    Class<?> aClass = UserDto.class;
-    Annotation[] annotations = aClass.getAnnotations();
-    for (Annotation annotation : annotations) {
+            }
+        }
 
+        return bean;
     }
-    Arrays.stream()
 
 }
