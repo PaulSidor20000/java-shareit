@@ -13,9 +13,10 @@ import java.util.Collection;
 @RequestMapping("/items")
 public class ItemController {
     private final ItemService itemService;
+    private static final String USER_ID = "X-Sharer-User-Id";
 
     @PostMapping
-    public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+    public ItemDto create(@RequestHeader(USER_ID) Long ownerId,
                           @Valid @RequestBody ItemDto itemDto
     ) {
         return itemService.create(ownerId, itemDto);
@@ -27,7 +28,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{id}")
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long ownerId,
+    public ItemDto update(@RequestHeader(USER_ID) Long ownerId,
                           @PathVariable(value = "id") Long itemId,
                           @RequestBody ItemDto itemDto
     ) {
@@ -41,7 +42,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> findAllItemsOfOwner(@RequestHeader("X-Sharer-User-Id") Long ownerId) {
+    public Collection<ItemDto> findAllItemsOfOwner(@RequestHeader(USER_ID) Long ownerId) {
         return itemService.findAllItemsOfOwner(ownerId);
     }
 

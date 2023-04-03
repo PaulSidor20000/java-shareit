@@ -5,29 +5,32 @@ import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.ItemStorage;
 import ru.practicum.shareit.item.model.Item;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class ItemDtoMapper {
     private final ItemStorage itemStorage;
 
-    public ItemDto mapToItemDto(Item item) {
-        return ItemDto.builder()
+    public ItemDto mapToItemDto(Optional<Item> anItem) {
+        return anItem.map(item -> ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .build();
+                .build()).orElse(null);
     }
 
     public Item mapToItemModel(Long ownerId, Long itemId, ItemDto itemDto) {
-        Item item = itemStorage.read(itemId);
-        return Item.builder()
+        Optional<Item> anItem = itemStorage.findById(itemId);
+
+        return anItem.map(item -> Item.builder()
                 .id(itemId)
                 .name(itemDto.getName() == null ? item.getName() : itemDto.getName())
                 .description(itemDto.getDescription() == null ? item.getDescription() : itemDto.getDescription())
                 .available(itemDto.getAvailable() == null ? item.getAvailable() : itemDto.getAvailable())
                 .ownerId(ownerId)
-                .build();
+                .build()).orElse(null);
     }
 
     public Item mapToNewItem(Long ownerId, ItemDto itemDto) {

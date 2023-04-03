@@ -10,7 +10,12 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserStorage;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_ITEM_ID;
+import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_OWNER_ID;
 
 @Slf4j
 @Service("itemService")
@@ -19,8 +24,6 @@ public class ItemServiceImpl implements ItemService {
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
     private final ItemDtoMapper itemDtoMapper;
-    private static final String FAILED_ITEM_ID = "Failed Item id: %s";
-    private static final String FAILED_OWNER_ID = "Failed owner id: %s";
 
     @Override
     public ItemDto create(Long ownerId, ItemDto itemDto) {
@@ -29,13 +32,13 @@ public class ItemServiceImpl implements ItemService {
             throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
         Item item = itemDtoMapper.mapToNewItem(ownerId, itemDto);
-        return itemDtoMapper.mapToItemDto(itemStorage.create(item));
+        return itemDtoMapper.mapToItemDto(java.util.Optional.of(itemStorage.save(item)));
     }
 
     @Override
     public ItemDto read(Long itemId) {
         if (itemStorage.existsById(itemId)) {
-            return itemDtoMapper.mapToItemDto(itemStorage.read(itemId));
+            return itemDtoMapper.mapToItemDto(itemStorage.findById(itemId));
         }
         log.warn(String.format(FAILED_ITEM_ID, itemId));
         throw new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId));
@@ -47,31 +50,42 @@ public class ItemServiceImpl implements ItemService {
             log.warn(String.format(FAILED_ITEM_ID, itemId));
             throw new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId));
         }
-        if (!itemStorage.findOwnerIdByItemId(itemId).equals(ownerId)) {
+        if (!findOwnerIdByItemId(itemId).equals(ownerId)) {
             log.warn(String.format(FAILED_OWNER_ID, ownerId));
             throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
         Item item = itemDtoMapper.mapToItemModel(ownerId, itemId, itemDto);
-        return itemDtoMapper.mapToItemDto(itemStorage.update(item));
+        return itemDtoMapper.mapToItemDto(java.util.Optional.of(itemStorage.save(item)));
     }
 
     @Override
     public void delete(Long userId) {
-        itemStorage.delete(userId);
+        itemStorage.deleteById(userId);
     }
 
     @Override
     public Collection<ItemDto> findAllItemsOfOwner(Long ownerId) {
-        return itemStorage.findAllItemsOfOwner(ownerId).stream()
-                .map(itemDtoMapper::mapToItemDto)
+        return itemStorage.findAllByOwnerIdAndAvailableTrue(ownerId).stream()
+                .map((Item anItem) -> itemDtoMapper.mapToItemDto(Optional.ofNullable(anItem)))
                 .collect(Collectors.toList());
     }
 
     @Override
     public Collection<ItemDto> search(String searchRequest) {
-        return itemStorage.search(searchRequest).stream()
-                .map(itemDtoMapper::mapToItemDto)
+        final String query = "%" + searchRequest.toLowerCase() + "%";
+        if (query.equals("%%")) {
+            return Collections.emptyList();
+        }
+        return itemStorage.findAllByNameIsLikeIgnoreCaseOrDescriptionIsLikeIgnoreCaseAndAvailableTrue(query, query)
+                .stream()
+                .map((Item anItem) -> itemDtoMapper.mapToItemDto(Optional.ofNullable(anItem)))
                 .collect(Collectors.toList());
+    }
+
+    private Long findOwnerIdByItemId(Long itemId) {
+        Optional<Item> anItem = itemStorage.findById(itemId);
+        return anItem.map(Item::getOwnerId).orElseThrow(() ->
+                new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
     }
 
 }

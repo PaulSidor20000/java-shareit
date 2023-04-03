@@ -9,11 +9,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Repository("itemsInMemory")
-public class ItemStorageInMemoryImpl implements ItemStorage {
+public class ItemStorageInMemoryImpl {//implements ItemStorage {
     private Long id = 0L;
     private final Map<Long, Item> items = new HashMap<>();
 
-    @Override
+  //  @Override
     public Item create(Item item) {
         item.setId(makeId());
         items.put(item.getId(), item);
@@ -21,37 +21,37 @@ public class ItemStorageInMemoryImpl implements ItemStorage {
         return item;
     }
 
-    @Override
+ //   @Override
     public Item read(Long itemId) {
         return items.get(itemId);
     }
 
-    @Override
+  //  @Override
     public Item update(Item item) {
         items.put(item.getId(), item);
         log.info("The Item was successfully updated");
         return item;
     }
 
-    @Override
+ //   @Override
     public void delete(Long itemId) {
         items.remove(itemId);
         log.info("The Item was successfully deleted");
     }
 
-    @Override
+ //   @Override
     public Collection<Item> findAllItemsOfOwner(Long ownerId) {
         return items.values().stream()
                 .filter(item -> item.getOwnerId().equals(ownerId))
                 .collect(Collectors.toList());
     }
 
-    @Override
+ //   @Override
     public Long findOwnerIdByItemId(Long itemId) {
         return items.get(itemId).getOwnerId();
     }
 
-    @Override
+  //  @Override
     public Collection<Item> search(String searchRequest) {
         final String query = searchRequest.toLowerCase();
         if (query.equals("")) {
@@ -64,7 +64,7 @@ public class ItemStorageInMemoryImpl implements ItemStorage {
                 .collect(Collectors.toList());
     }
 
-    @Override
+ //   @Override
     public boolean existsById(Long itemId) {
         return items.containsKey(itemId);
     }
