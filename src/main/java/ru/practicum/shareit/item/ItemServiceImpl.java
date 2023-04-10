@@ -84,7 +84,7 @@ public class ItemServiceImpl implements ItemService {
 
     private Long findOwnerIdByItemId(Long itemId) {
         Optional<Item> anItem = itemStorage.findById(itemId);
-        return anItem.map(Item::getOwnerId).orElseThrow(() ->
+        return anItem.map(item -> item.getOwner().getId()).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
     }
 

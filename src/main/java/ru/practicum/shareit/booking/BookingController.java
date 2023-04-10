@@ -1,12 +1,55 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.BookState;
 
-/**
- * TODO Sprint add-bookings.
- */
+import javax.validation.Valid;
+import java.util.List;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
 public class BookingController {
+    private final BookingService bookingService;
+    public static final String USER_ID = "X-Sharer-User-Id";
+
+    @PostMapping
+    public BookingDto makeBooking(@RequestHeader(USER_ID) Long bookerId,
+                                  @Valid @RequestBody BookingDto bookingDto) {
+
+        return bookingService.makeBooking(bookerId, bookingDto);
+    }
+
+    @PatchMapping("/{bookingId}")
+    public BookingDto approving(@RequestHeader(USER_ID) Long ownerId,
+                                @PathVariable Long bookingId,
+                                @RequestParam(name = "approved") boolean isApproved) {
+
+        return bookingService.approving(ownerId, bookingId, isApproved);
+
+    }
+
+    @GetMapping("/{bookingId}")
+    public BookingDto getBooking(@PathVariable Long bookingId) {
+
+        return bookingService.getBooking(bookingId);
+    }
+
+    @GetMapping
+    public List<BookingDto> getBookerStatistics(@RequestHeader(USER_ID) Long bookerId,
+                                                @RequestParam BookState state) {
+
+        return bookingService.getBookerStatistics(bookerId, state);
+    }
+
+    @GetMapping("/owner")
+    public List<BookingDto> getOwnerStatistics(@RequestHeader(USER_ID) Long ownerId,
+                                               @RequestParam BookState state) {
+
+        return bookingService.getOwnerStatistics(ownerId, state);
+    }
+
+
 }

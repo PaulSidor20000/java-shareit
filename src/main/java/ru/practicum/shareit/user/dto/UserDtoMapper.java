@@ -8,13 +8,19 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.ENTITY_NOT_FOUND_MESSAGE;
 
 @Component
 @RequiredArgsConstructor
-public class UserDtoMapper {
+public class UserDtoMapper implements Function<User, UserDto> {
     private final UserStorage userStorage;
+
+    @Override
+    public UserDto apply(User user) {
+        return null;
+    }
 
     public UserDto mapToUserDto(Optional<User> aUser) {
         User user = aUser.orElseThrow(() ->
@@ -29,26 +35,20 @@ public class UserDtoMapper {
 
     public User mapToUserModel(Long userId, UserDto userDto) {
         Optional<User> aUser = userStorage.findById(userId);
-        User user = null;
 
-        if (aUser.isPresent()) {
-            user = aUser.get();
-        }
-
-        return User.builder()
+        return aUser.map(user -> User.builder()
                 .id(userId)
                 .email(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail())
                 .name(userDto.getName() == null ? user.getName() : userDto.getName())
-                .itemIds(user.getItemIds())
-                .build();
+            //    .itemIds(user.getItemIds())
+                .build()).orElse(null);
     }
 
     public User mapToNewUser(UserDto userDto) {
         return User.builder()
                 .email(userDto.getEmail())
                 .name(userDto.getName())
-                .itemIds(Collections.emptySet())
+             //   .itemIds(Collections.emptySet())
                 .build();
     }
-
 }

@@ -42,13 +42,13 @@ public class ItemStorageInMemoryImpl {//implements ItemStorage {
  //   @Override
     public Collection<Item> findAllItemsOfOwner(Long ownerId) {
         return items.values().stream()
-                .filter(item -> item.getOwnerId().equals(ownerId))
+                .filter(item -> item.getOwner().getId().equals(ownerId))
                 .collect(Collectors.toList());
     }
 
  //   @Override
     public Long findOwnerIdByItemId(Long itemId) {
-        return items.get(itemId).getOwnerId();
+        return items.get(itemId).getOwner().getId();
     }
 
   //  @Override
@@ -60,7 +60,7 @@ public class ItemStorageInMemoryImpl {//implements ItemStorage {
         return items.values().stream()
                 .filter(item -> item.getName().toLowerCase().contains(query)
                         || item.getDescription().toLowerCase().contains(query))
-                .filter(item -> item.getAvailable().equals(true))
+                .filter(Item::isAvailable)
                 .collect(Collectors.toList());
     }
 

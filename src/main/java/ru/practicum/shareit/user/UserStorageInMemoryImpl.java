@@ -11,60 +11,60 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.DUPLICATED_EMAIL;
 
 @Slf4j
 @Repository("usersInMemory")
-public class UserStorageInMemoryImpl implements UserStorage {
+public class UserStorageInMemoryImpl {//implements UserStorage {
     private Long id = 0L;
     private final Map<Long, User> users = new HashMap<>();
 
-    @Override
+ //   @Override
     public List<User> findAll() {
         return new ArrayList<>(users.values());
     }
 
-    @Override
+ //   @Override
     public Iterable<User> findAllById(Iterable<Long> longs) {
         return null;
     }
 
-    @Override
+ //   @Override
     public long count() {
         return users.size();
     }
 
-    @Override
+ //   @Override
     public void deleteById(Long aLong) {
         users.remove(aLong);
         log.info("The User was successfully deleted");
     }
 
-    @Override
+ //   @Override
     public void delete(User entity) {
         users.remove(entity.getId());
         log.info("The User was successfully deleted");
     }
 
-    @Override
+ //   @Override
     public void deleteAllById(Iterable<? extends Long> longs) {
         longs.forEach(users::remove);
     }
 
-    @Override
+ //   @Override
     public void deleteAll(Iterable<? extends User> entities) {
         entities.forEach(entity -> users.remove(entity.getId()));
     }
 
-    @Override
+ //   @Override
     public void deleteAll() {
         users.clear();
     }
 
-    @Override
+ //   @Override
     public Optional<User> findUserByEmailContainingIgnoreCase(String email) {
         return users.values().stream()
                 .filter(user -> user.getEmail().equals(email))
                 .findFirst();
     }
 
-    @Override
+  //  @Override
     public <S extends User> S save(S entity) {
         if (entity.getId() == null) {
             entity.setId(++id);
@@ -81,17 +81,17 @@ public class UserStorageInMemoryImpl implements UserStorage {
         return entity;
     }
 
-    @Override
+ //   @Override
     public <S extends User> Iterable<S> saveAll(Iterable<S> entities) {
         return null;
     }
 
-    @Override
+ //   @Override
     public Optional<User> findById(Long aLong) {
         return Optional.ofNullable(users.get(aLong));
     }
 
-    @Override
+ //   @Override
     public boolean existsById(Long userId) {
         return users.containsKey(userId);
     }

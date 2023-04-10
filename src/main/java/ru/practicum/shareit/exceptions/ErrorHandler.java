@@ -21,6 +21,7 @@ public class ErrorHandler {
     public static final String FAILED_ITEM_ID = "Failed Item id: %s";
     public static final String FAILED_OWNER_ID = "Failed owner id: %s";
     public static final String FAILED_USER_ID = "Failed user id: %s";
+    public static final String FAILED_BOOKING_ID = "Failed booking id: %s";
     public static final String DUPLICATED_EMAIL = "Duplicated email found: %s";
     public static final String ENTITY_NOT_FOUND_MESSAGE = "Failed to find an entity: %s in database";
 
@@ -38,9 +39,21 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> validationObjectHandler(EntityNotFoundException error) {
+    public ResponseEntity<Map<String, String>> validationEntityHandler(EntityNotFoundException error) {
         log.warn(LOG_ERROR, error.getMessage());
         return ResponseEntity.status(404).body(Map.of(A_ERROR, error.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> validationBookingMatchToEntityHandler(BookingNotMatchException error) {
+        log.warn(LOG_ERROR, error.getMessage());
+        return ResponseEntity.status(404).body(Map.of(A_ERROR, error.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> validationBookingHandler(ValidationException error) {
+        log.warn(LOG_ERROR, error.getMessage());
+        return ResponseEntity.status(400).body(Map.of(A_ERROR, error.getMessage()));
     }
 
     @ExceptionHandler
