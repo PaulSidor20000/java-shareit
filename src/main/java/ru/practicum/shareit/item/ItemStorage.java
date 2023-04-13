@@ -11,4 +11,6 @@ public interface ItemStorage extends JpaRepository<Item, Long> {
 
     Collection<Item> findAllByNameIsLikeIgnoreCaseOrDescriptionIsLikeIgnoreCaseAndAvailableTrue(String queryForName, String queryForDescription);
 
+    Collection<Item> findByOwnerId(Long ownerId);
+
 }

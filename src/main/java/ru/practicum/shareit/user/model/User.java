@@ -1,16 +1,20 @@
 package ru.practicum.shareit.user.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.*;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.item.model.Item;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
@@ -26,7 +30,29 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-//    @Transient
-//    private Set<Long> itemIds;
+    @ToString.Exclude
+    @JsonManagedReference(value = "booker")
+    @OneToMany(mappedBy = "booker", fetch = FetchType.LAZY)
+    private Set<Booking> bookings;
+
+    @ToString.Exclude
+    @JsonManagedReference(value = "owner")
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    private Set<Item> items;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id)
+                && Objects.equals(name, user.name)
+                && Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, email);
+    }
 
 }

@@ -15,12 +15,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
-    public static final String A_ERROR = "error:";
-    public static final String LOG_ERROR = "error: {}";
+    public static final String A_ERROR = "Error message";
+    public static final String LOG_ERROR = "Error message: {}";
     public static final String SERVER_ERROR = "Server error:";
+    public static final String UNKNOWN_STATE = "Unknown state: %s";
     public static final String FAILED_ITEM_ID = "Failed Item id: %s";
-    public static final String FAILED_OWNER_ID = "Failed owner id: %s";
     public static final String FAILED_USER_ID = "Failed user id: %s";
+    public static final String FAILED_OWNER_ID = "Failed owner id: %s";
     public static final String FAILED_BOOKING_ID = "Failed booking id: %s";
     public static final String DUPLICATED_EMAIL = "Duplicated email found: %s";
     public static final String ENTITY_NOT_FOUND_MESSAGE = "Failed to find an entity: %s in database";
@@ -33,9 +34,19 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> validationEmailHandler(EmailDuplicateException error) {
+    public ResponseEntity<Map<String, String>> validationHeaderHandler(MissingRequestHeaderException error) {
         log.warn(LOG_ERROR, error.getMessage());
-        return ResponseEntity.status(409).body(Map.of(A_ERROR, error.getMessage()));
+        return ResponseEntity.status(400).body(Map.of(error.getHeaderName(), Objects.requireNonNull(error.getMessage())));
+    }
+
+    @ExceptionHandler({
+            ValidationException.class,
+            UnknownStateException.class,
+            IllegalArgumentException.class
+    })
+    public ResponseEntity<Map<String, String>> validationHandler(RuntimeException error) {
+        log.warn(LOG_ERROR, error.getMessage());
+        return ResponseEntity.status(400).body(Map.of(A_ERROR, error.getMessage()));
     }
 
     @ExceptionHandler
@@ -51,16 +62,16 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> validationBookingHandler(ValidationException error) {
+    public ResponseEntity<Map<String, String>> validationEmailHandler(EmailDuplicateException error) {
         log.warn(LOG_ERROR, error.getMessage());
-        return ResponseEntity.status(400).body(Map.of(A_ERROR, error.getMessage()));
+        return ResponseEntity.status(409).body(Map.of(A_ERROR, error.getMessage()));
     }
+//    @ExceptionHandler
+//    public ResponseEntity<Map<String, String>> unknownStateHandler(UnknownStateException error) {
+//        log.warn(LOG_ERROR, error.getMessage());
+//        return ResponseEntity.status(400).body(Map.of(A_ERROR, error.getMessage()));
 
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> validationHeaderHandler(MissingRequestHeaderException error) {
-        log.warn(LOG_ERROR, error.getMessage());
-        return ResponseEntity.status(400).body(Map.of(error.getHeaderName(), Objects.requireNonNull(error.getMessage())));
-    }
+//    }
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> otherServerErrorsHandler(Throwable error) {

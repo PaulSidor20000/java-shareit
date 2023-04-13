@@ -11,13 +11,16 @@ import ru.practicum.shareit.booking.model.BookStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.BookingNotMatchException;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exceptions.UnknownStateException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.ItemStorage;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserStorage;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.*;
 
@@ -44,9 +47,15 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("Booking not available");
         }
 
+        if (item.getOwner().getId().equals(bookerId)) {
+            throw new BookingNotMatchException("Failed to book item by owner");
+        }
+
         User booker = userStorage.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
         Booking booking = BookingMapper.toBooking(bookingDto);
+
+
 
         booking.setStatus(BookStatus.WAITING);
         booking.setBooker(booker);
@@ -59,9 +68,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDto approving(Long ownerId, Long bookingId, boolean isApproved) {
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_BOOKING_ID, bookingId)));
+
+        if (booking.getStatus() != BookStatus.WAITING) {
+            throw new IllegalArgumentException("Rejected for approving operation");
+        }
 
         if (booking.getItem().getOwner().getId().equals(ownerId)) {
             if (isApproved) {
@@ -69,6 +83,8 @@ public class BookingServiceImpl implements BookingService {
             } else {
                 booking.setStatus(BookStatus.REJECTED);
             }
+        } else {
+            throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
         return BookingMapper.toBookingDto(booking);
     }
@@ -85,13 +101,77 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getBookerStatistics(Long bookerId, BookState state) {
-        return null;
+    public List<BookingDto> getBookerStatistics(Long bookerId, String requestState) {
+        User booker = userStorage.findById(bookerId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
+        Set<Booking> bookings = booker.getBookings();
+
+        return getBookingStatistics(bookings, requestState);
     }
 
     @Override
-    public List<BookingDto> getOwnerStatistics(Long ownerId, BookState state) {
-        return null;
+    public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState) {
+        User owner = userStorage.findById(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
+
+        List<Booking> bookings = owner.getItems().stream()
+                .flatMap(item -> item.getBookings().stream())
+                .collect(Collectors.toList());
+
+        return getBookingStatistics(bookings, requestState);
+    }
+
+    private List<BookingDto> getBookingStatistics(Collection<Booking> bookings, String requestState) {
+        switch (getState(requestState)) {
+            case PAST:
+                return bookings.stream()
+                        .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toCollection(LinkedList::new));
+            case CURRENT:
+                return bookings.stream()
+                        .filter(booking -> booking.getStart().isAfter(LocalDateTime.now())
+                                && booking.getEnd().isBefore(LocalDateTime.now()))
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toCollection(LinkedList::new));
+            case FUTURE:
+                return bookings.stream()
+                        .filter(booking -> booking.getEnd().isAfter(LocalDateTime.now()))
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toCollection(LinkedList::new));
+            case WAITING:
+                return bookings.stream()
+                        .filter(booking -> booking.getStatus() == BookStatus.WAITING)
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toCollection(LinkedList::new));
+            case REJECTED:
+                return bookings.stream()
+                        .filter(booking -> booking.getStatus() == BookStatus.REJECTED)
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toCollection(LinkedList::new));
+            default:
+                return bookings.stream()
+                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .map(BookingMapper::toBookingDto)
+                        .collect(Collectors.toCollection(LinkedList::new));
+        }
+
+    }
+
+
+    private BookState getState(String requestState) {
+        BookState state;
+        try {
+            state = BookState.valueOf(requestState);
+        } catch (IllegalArgumentException e) {
+            throw new UnknownStateException(String.format(UNKNOWN_STATE, requestState));
+        }
+        return state;
     }
 
     private boolean isValid(Long bookerId, BookingDto bookingDto) {

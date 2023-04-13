@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,7 +18,6 @@ public class BookingDto {
     private Long id;
 
     @NotNull(message = "Item id must be specified")
-  //  @JsonIgnore
     private Long itemId;
 
     @NotNull(message = "Start time must be specified")
@@ -39,3 +37,4 @@ public class BookingDto {
     private Item item;
 
 }
+
