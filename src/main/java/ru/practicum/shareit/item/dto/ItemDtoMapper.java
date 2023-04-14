@@ -17,12 +17,25 @@ public class ItemDtoMapper {
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
 
-    public ItemDto mapToItemDto(Optional<Item> anItem) {
+    public ItemDto mapToItemDtoForUser(Optional<Item> anItem) {
         return anItem.map(item -> ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.isAvailable())
+                .comments(item.getComments())
+                .build()).orElse(null);
+    }
+
+    public ItemDto mapToItemDtoForOwner(Optional<Item> anItem) {
+        return anItem.map(item -> ItemDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.isAvailable())
+                .nextBooking(itemStorage.findNextBookingsOfItem(item).stream().findFirst().orElse(null))
+                .lastBooking(itemStorage.findLastBookingsOfItem(item).stream().findFirst().orElse(null))
+                .comments(item.getComments())
                 .build()).orElse(null);
     }
 

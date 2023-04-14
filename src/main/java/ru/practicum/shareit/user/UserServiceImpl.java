@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EmailDuplicateException;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -15,21 +16,25 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_USER_ID;
 import static ru.practicum.shareit.exceptions.ErrorHandler.DUPLICATED_EMAIL;
+import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_USER_ID;
 
 @Slf4j
 @Service("userService")
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserStorage userStorage;
     private final UserDtoMapper userDtoMapper;
 
+    @Override
+    @Transactional
     public UserDto create(UserDto userDto) {
         User user = userDtoMapper.mapToNewUser(userDto);
         return userDtoMapper.mapToUserDto(java.util.Optional.of(userStorage.save(user)));
     }
 
+    @Override
     public UserDto read(Long userId) {
         if (userStorage.existsById(userId)) {
             return userDtoMapper.mapToUserDto(userStorage.findById(userId));
@@ -38,6 +43,8 @@ public class UserServiceImpl implements UserService {
         throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
     }
 
+    @Override
+    @Transactional
     public UserDto update(Long userId, UserDto userDto) {
         if (!userStorage.existsById(userId)) {
             log.warn(String.format(FAILED_USER_ID, userId));
@@ -54,10 +61,13 @@ public class UserServiceImpl implements UserService {
         return userDtoMapper.mapToUserDto(java.util.Optional.of(userStorage.save(user)));
     }
 
+    @Override
+    @Transactional
     public void delete(Long userId) {
         userStorage.deleteById(userId);
     }
 
+    @Override
     public Collection<UserDto> findAll() {
         List<User> users = new ArrayList<>();
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.*;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
 import javax.persistence.*;
@@ -39,6 +40,11 @@ public class User {
     @JsonManagedReference(value = "owner")
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     private Set<Item> items;
+
+    @ToString.Exclude
+    @JsonManagedReference(value = "booker_comment")
+    @OneToMany(mappedBy = "booker", fetch = FetchType.LAZY)
+    private Set<Comment> comments;
 
     @Override
     public boolean equals(Object o) {

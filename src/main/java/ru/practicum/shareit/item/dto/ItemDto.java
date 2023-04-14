@@ -2,9 +2,12 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import ru.practicum.shareit.booking.model.BookingShort;
+import ru.practicum.shareit.item.model.Comment;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.Set;
 
 @Data
 @Builder
@@ -16,5 +19,11 @@ public class ItemDto {
     private String description;
     @NotNull(message = "availability must be specified")
     private Boolean available;
+
+    private BookingShort nextBooking;
+
+    private BookingShort lastBooking;
+
+    private Set<Comment> comments;
 
 }

@@ -55,8 +55,6 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
         Booking booking = BookingMapper.toBooking(bookingDto);
 
-
-
         booking.setStatus(BookStatus.WAITING);
         booking.setBooker(booker);
         booking.setItem(item);
