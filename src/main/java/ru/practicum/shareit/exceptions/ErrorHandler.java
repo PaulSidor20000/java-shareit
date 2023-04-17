@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
-    public static final String A_ERROR = "Error message";
+    public static final String A_ERROR = "error";
     public static final String LOG_ERROR = "Error message: {}";
     public static final String SERVER_ERROR = "Server error:";
     public static final String UNKNOWN_STATE = "Unknown state: %s";
@@ -66,12 +66,6 @@ public class ErrorHandler {
         log.warn(LOG_ERROR, error.getMessage());
         return ResponseEntity.status(409).body(Map.of(A_ERROR, error.getMessage()));
     }
-//    @ExceptionHandler
-//    public ResponseEntity<Map<String, String>> unknownStateHandler(UnknownStateException error) {
-//        log.warn(LOG_ERROR, error.getMessage());
-//        return ResponseEntity.status(400).body(Map.of(A_ERROR, error.getMessage()));
-
-//    }
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> otherServerErrorsHandler(Throwable error) {

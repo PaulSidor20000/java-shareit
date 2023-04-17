@@ -4,12 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.model.BookStatus;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoMapper;
 import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserStorage;
 import ru.practicum.shareit.user.model.User;
@@ -25,8 +26,8 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.*;
 
 @Slf4j
 @Service("itemService")
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
@@ -104,9 +105,14 @@ public class ItemServiceImpl implements ItemService {
                 new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
         Item item = itemStorage.findById(itemId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
+        boolean canComment = booker.getBookings().stream()
+                .anyMatch(booking ->
+                        booking.getItem().equals(item)
+                                && booking.getStatus().equals(BookStatus.APPROVED)
+                                && booking.getStart().isBefore(LocalDateTime.now()));
 
-        if (booker.getBookings().stream().noneMatch(booking -> booking.getItem().equals(item))) {
-            throw new ValidationException(String.format(FAILED_USER_ID, bookerId));
+        if (!canComment) {
+            throw new ValidationException(String.format(FAILED_USER_ID + " can't comment", bookerId));
         }
         Comment comment = Comment.builder()
                 .text(commentDto.getText())

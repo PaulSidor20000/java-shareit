@@ -6,7 +6,6 @@ import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.user.UserStorage;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -40,7 +39,6 @@ public class UserDtoMapper implements Function<User, UserDto> {
                 .id(userId)
                 .email(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail())
                 .name(userDto.getName() == null ? user.getName() : userDto.getName())
-            //    .itemIds(user.getItemIds())
                 .build()).orElse(null);
     }
 
@@ -48,7 +46,7 @@ public class UserDtoMapper implements Function<User, UserDto> {
         return User.builder()
                 .email(userDto.getEmail())
                 .name(userDto.getName())
-             //   .itemIds(Collections.emptySet())
                 .build();
     }
+
 }

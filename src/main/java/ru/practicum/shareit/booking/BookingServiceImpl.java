@@ -19,7 +19,10 @@ import ru.practicum.shareit.user.UserStorage;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.*;
@@ -68,7 +71,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto approving(Long ownerId, Long bookingId, boolean isApproved) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
+        Booking booking = bookingRepository.findBookingByIdAndFetchAllEntities(bookingId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_BOOKING_ID, bookingId)));
 
         if (booking.getStatus() != BookStatus.WAITING) {
@@ -84,17 +87,19 @@ public class BookingServiceImpl implements BookingService {
         } else {
             throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
+
         return BookingMapper.toBookingDto(booking);
     }
 
     @Override
     public BookingDto getBooking(Long bookingId, Long userId) {
-        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() ->
+        Booking booking = bookingRepository.findBookingByIdAndFetchAllEntities(bookingId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_BOOKING_ID, bookingId)));
 
         if (booking.getItem().getOwner().getId().equals(userId) || booking.getBooker().getId().equals(userId)) {
             return BookingMapper.toBookingDto(booking);
         }
+
         throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
     }
 
@@ -102,7 +107,12 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getBookerStatistics(Long bookerId, String requestState) {
         User booker = userStorage.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
-        Set<Booking> bookings = booker.getBookings();
+
+        Collection<Long> bookingIds = booker.getBookings().stream()
+                .map(Booking::getId)
+                .collect(Collectors.toSet());
+
+        Collection<Booking> bookings = bookingRepository.findBookingsAndFetchAllEntities(bookingIds);
 
         return getBookingStatistics(bookings, requestState);
     }
@@ -112,31 +122,36 @@ public class BookingServiceImpl implements BookingService {
         User owner = userStorage.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
 
-        List<Booking> bookings = owner.getItems().stream()
+        Collection<Long> bookingIds = owner.getItems().stream()
                 .flatMap(item -> item.getBookings().stream())
-                .collect(Collectors.toList());
+                .map(Booking::getId)
+                .collect(Collectors.toSet());
+
+        Collection<Booking> bookings = bookingRepository.findBookingsAndFetchAllEntities(bookingIds);
 
         return getBookingStatistics(bookings, requestState);
     }
 
     private List<BookingDto> getBookingStatistics(Collection<Booking> bookings, String requestState) {
+        LocalDateTime now = LocalDateTime.now();
+
         switch (getState(requestState)) {
             case PAST:
                 return bookings.stream()
-                        .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
+                        .filter(booking -> booking.getEnd().isBefore(now))
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toCollection(LinkedList::new));
             case CURRENT:
                 return bookings.stream()
-                        .filter(booking -> booking.getStart().isAfter(LocalDateTime.now())
-                                && booking.getEnd().isBefore(LocalDateTime.now()))
-                        .sorted(Comparator.comparing(Booking::getStart).reversed())
+                        .filter(booking -> booking.getStart().isBefore(now)
+                                && booking.getEnd().isAfter(now))
+                        .sorted(Comparator.comparing(Booking::getEnd).reversed())
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toCollection(LinkedList::new));
             case FUTURE:
                 return bookings.stream()
-                        .filter(booking -> booking.getEnd().isAfter(LocalDateTime.now()))
+                        .filter(booking -> booking.getEnd().isAfter(now))
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toCollection(LinkedList::new));
@@ -158,18 +173,15 @@ public class BookingServiceImpl implements BookingService {
                         .map(BookingMapper::toBookingDto)
                         .collect(Collectors.toCollection(LinkedList::new));
         }
-
     }
 
 
     private BookState getState(String requestState) {
-        BookState state;
         try {
-            state = BookState.valueOf(requestState);
+            return BookState.valueOf(requestState);
         } catch (IllegalArgumentException e) {
             throw new UnknownStateException(String.format(UNKNOWN_STATE, requestState));
         }
-        return state;
     }
 
     private boolean isValid(Long bookerId, BookingDto bookingDto) {
@@ -179,4 +191,5 @@ public class BookingServiceImpl implements BookingService {
         }
         return userStorage.existsById(bookerId);
     }
+
 }
