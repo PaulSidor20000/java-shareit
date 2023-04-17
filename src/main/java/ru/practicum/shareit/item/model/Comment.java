@@ -8,6 +8,7 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -45,4 +46,19 @@ public class Comment {
     @JoinColumn(name = "booker_id", referencedColumnName = "id")
     private User booker;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Comment comment = (Comment) o;
+        return Objects.equals(id, comment.id)
+                && Objects.equals(text, comment.text)
+                && Objects.equals(authorName, comment.authorName)
+                && Objects.equals(created, comment.created);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, text, authorName, created);
+    }
 }
