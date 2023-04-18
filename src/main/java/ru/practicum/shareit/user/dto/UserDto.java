@@ -10,6 +10,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @Builder
 public class UserDto {
+
     private Long id;
 
     @NotBlank(message = "name must be specified")

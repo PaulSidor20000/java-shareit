@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 public class CommentDto {
+
     private Long id;
 
     @NotBlank(message = "Comment text must be specified")
@@ -19,4 +20,7 @@ public class CommentDto {
     private String authorName;
 
     private LocalDateTime created;
+
+    private Long itemId;
+
 }

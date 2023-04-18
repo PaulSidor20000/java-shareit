@@ -7,13 +7,10 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EmailDuplicateException;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserDtoMapper;
+import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.DUPLICATED_EMAIL;
@@ -24,56 +21,53 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_USER_ID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
-    private final UserDtoMapper userDtoMapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public UserDto create(UserDto userDto) {
-        User user = userDtoMapper.mapToNewUser(userDto);
-        return userDtoMapper.mapToUserDto(java.util.Optional.of(userStorage.save(user)));
+        User user = UserMapper.toUser(userDto);
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
     public UserDto read(Long userId) {
-        if (userStorage.existsById(userId)) {
-            return userDtoMapper.mapToUserDto(userStorage.findById(userId));
-        }
-        log.warn(String.format(FAILED_USER_ID, userId));
-        throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
+        return userRepository.findById(userId)
+                .map(UserMapper::toUserDto)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, userId)));
     }
 
     @Override
     @Transactional
     public UserDto update(Long userId, UserDto userDto) {
-        if (!userStorage.existsById(userId)) {
-            log.warn(String.format(FAILED_USER_ID, userId));
-            throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
-        }
-        userStorage.findUserByEmailContainingIgnoreCase(userDto.getEmail())
-                .ifPresent(user -> {
-                    if (!user.getId().equals(userId)) {
-                        log.warn(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, userId)));
+
+        userRepository.findByEmailContainingIgnoreCase(userDto.getEmail())
+                .ifPresent(userWithEmail -> {
+                    if (!userWithEmail.getId().equals(userId)) {
                         throw new EmailDuplicateException(String.format(DUPLICATED_EMAIL, userDto.getEmail()));
                     }
                 });
-        User user = userDtoMapper.mapToUserModel(userId, userDto);
-        return userDtoMapper.mapToUserDto(java.util.Optional.of(userStorage.save(user)));
+
+        userDto.setId(userId);
+        userDto.setEmail(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail());
+        userDto.setName(userDto.getName() == null ? user.getName() : userDto.getName());
+
+        user = UserMapper.toUser(userDto);
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
     @Transactional
     public void delete(Long userId) {
-        userStorage.deleteById(userId);
+        userRepository.deleteById(userId);
     }
 
     @Override
     public Collection<UserDto> findAll() {
-        List<User> users = new ArrayList<>();
-
-        userStorage.findAll().forEach(users::add);
-        return users.stream()
-                .map((User aUser) -> userDtoMapper.mapToUserDto(Optional.ofNullable(aUser)))
+        return userRepository.findAll().stream()
+                .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 

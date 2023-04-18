@@ -13,9 +13,9 @@ import ru.practicum.shareit.exceptions.BookingNotMatchException;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.UnknownStateException;
 import ru.practicum.shareit.exceptions.ValidationException;
-import ru.practicum.shareit.item.ItemStorage;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.UserStorage;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -33,8 +33,8 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.*;
 @Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final UserStorage userStorage;
-    private final ItemStorage itemStorage;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     @Transactional
@@ -43,7 +43,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingNotMatchException("Failed Booking DTO validation");
         }
 
-        Item item = itemStorage.findById(bookingDto.getItemId()).orElseThrow(() ->
+        Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, bookingDto.getItemId())));
 
         if (!item.isAvailable()) {
@@ -54,7 +54,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingNotMatchException("Failed to book item by owner");
         }
 
-        User booker = userStorage.findById(bookerId)
+        User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
         Booking booking = BookingMapper.toBooking(bookingDto);
 
@@ -105,7 +105,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getBookerStatistics(Long bookerId, String requestState) {
-        User booker = userStorage.findById(bookerId)
+        User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
 
         Collection<Long> bookingIds = booker.getBookings().stream()
@@ -119,7 +119,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState) {
-        User owner = userStorage.findById(ownerId)
+        User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
 
         Collection<Long> bookingIds = owner.getItems().stream()
@@ -189,7 +189,7 @@ public class BookingServiceImpl implements BookingService {
                 || bookingDto.getStart().isEqual(bookingDto.getEnd())) {
             throw new ValidationException("Wrong booking time parameter");
         }
-        return userStorage.existsById(bookerId);
+        return userRepository.existsById(bookerId);
     }
 
 }

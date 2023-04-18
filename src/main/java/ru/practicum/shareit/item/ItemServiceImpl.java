@@ -5,21 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.BookStatus;
+import ru.practicum.shareit.booking.model.BookingShort;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoMapper;
+import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.UserStorage;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.*;
@@ -29,81 +28,117 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
-    private final ItemStorage itemStorage;
-    private final UserStorage userStorage;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
     private final CommentRepository commentRepository;
-    private final ItemDtoMapper itemDtoMapper;
 
     @Override
     @Transactional
     public ItemDto create(Long ownerId, ItemDto itemDto) {
-        if (!userStorage.existsById(ownerId)) {
-            log.warn(String.format(FAILED_OWNER_ID, ownerId));
-            throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
-        }
-        Item item = itemDtoMapper.mapToNewItem(ownerId, itemDto);
-        return itemDtoMapper.mapToItemDtoForUser(java.util.Optional.of(itemStorage.save(item)));
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId)));
+        Item item = ItemMapper.toItem(itemDto);
+        item.setOwner(owner);
+
+        return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
     public ItemDto read(Long itemId, Long userId) {
-        Item item = itemStorage.findById(itemId).orElseThrow(() ->
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
+        ItemDto itemDto = ItemMapper.toItemDto(item);
+        itemDto.setComments(commentRepository.findCommentDtosByItem(item));
 
         if (item.getOwner().getId().equals(userId)) {
-            return itemDtoMapper.mapToItemDtoForOwner(itemStorage.findById(itemId));
-        } else {
-            return itemDtoMapper.mapToItemDtoForUser(itemStorage.findById(itemId));
+            itemDto.setNextBooking(itemRepository.findNextBookingsOfItem(item).stream().findFirst().orElse(null));
+            itemDto.setLastBooking(itemRepository.findLastBookingsOfItem(item).stream().findFirst().orElse(null));
+
+            return itemDto;
         }
+        return itemDto;
     }
 
     @Override
     @Transactional
     public ItemDto update(Long ownerId, Long itemId, ItemDto itemDto) {
-        if (!itemStorage.existsById(itemId)) {
-            log.warn(String.format(FAILED_ITEM_ID, itemId));
-            throw new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId));
-        }
-        if (!findOwnerIdByItemId(itemId).equals(ownerId)) {
-            log.warn(String.format(FAILED_OWNER_ID, ownerId));
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
+        User owner = item.getOwner();
+
+        if (!owner.getId().equals(ownerId)) {
             throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
-        Item item = itemDtoMapper.mapToItemModel(ownerId, itemId, itemDto);
-        return itemDtoMapper.mapToItemDtoForUser(java.util.Optional.of(itemStorage.save(item)));
+        itemDto.setId(itemId);
+        itemDto.setName(itemDto.getName() == null ? item.getName() : itemDto.getName());
+        itemDto.setDescription(itemDto.getDescription() == null ? item.getDescription() : itemDto.getDescription());
+        itemDto.setAvailable(itemDto.getAvailable() == null ? item.isAvailable() : itemDto.getAvailable());
+
+        item = ItemMapper.toItem(itemDto);
+        item.setOwner(owner);
+        itemDto = ItemMapper.toItemDto(itemRepository.save(item));
+
+        itemDto.setComments(commentRepository.findCommentDtosByItem(item));
+        itemDto.setNextBooking(itemRepository.findNextBookingsOfItem(item).stream().findFirst().orElse(null));
+        itemDto.setLastBooking(itemRepository.findLastBookingsOfItem(item).stream().findFirst().orElse(null));
+
+        return itemDto;
     }
 
     @Override
     @Transactional
     public void delete(Long userId) {
-        itemStorage.deleteById(userId);
+        itemRepository.deleteById(userId);
     }
 
     @Override
     public Collection<ItemDto> findAllItemsOfOwner(Long ownerId) {
-        return itemStorage.findAllByOwnerIdAndAvailableTrue(ownerId).stream()
+        Map<Long, Item> items = itemRepository.findAllByOwnerIdAndAvailableTrue(ownerId).stream()
+                .collect(Collectors.toMap(Item::getId, Function.identity()));
+
+        Map<Long, List<CommentDto>> commentDtos = commentRepository.findCommentDtosByItems(items.values()).stream()
+                .collect(Collectors.groupingBy(CommentDto::getItemId));
+
+        Collection<BookingShort> nextBookings = itemRepository.findNextBookings(items.values());
+        Collection<BookingShort> lastBookings = itemRepository.findLastBookings(items.values());
+
+        return items.values().stream()
                 .sorted(Comparator.comparing(Item::getId))
-                .map(item -> itemDtoMapper.mapToItemDtoForOwner(Optional.of(item)))
+                .map(item -> {
+                    ItemDto itemDto = ItemMapper.toItemDto(item);
+                    itemDto.setNextBooking(nextBookings.stream()
+                            .filter(bookingShort -> bookingShort.getItemId().equals(itemDto.getId()))
+                            .findFirst()
+                            .orElse(null));
+                    itemDto.setLastBooking(lastBookings.stream()
+                            .filter(bookingShort -> bookingShort.getItemId().equals(itemDto.getId()))
+                            .findFirst()
+                            .orElse(null));
+                    itemDto.setComments(commentDtos.get(itemDto.getId()));
+
+                    return itemDto;
+                })
                 .collect(Collectors.toList());
     }
 
     @Override
     public Collection<ItemDto> search(String searchRequest) {
-        final String query = "%" + searchRequest.toLowerCase() + "%";
+        final String query = "%" + searchRequest + "%";
         if (query.equals("%%")) {
             return Collections.emptyList();
         }
-        return itemStorage.findAllByNameIsLikeIgnoreCaseOrDescriptionIsLikeIgnoreCaseAndAvailableTrue(query, query)
+        return itemRepository.findAllByNameIsLikeIgnoreCaseOrDescriptionIsLikeIgnoreCaseAndAvailableTrue(query, query)
                 .stream()
-                .map((Item anItem) -> itemDtoMapper.mapToItemDtoForUser(Optional.ofNullable(anItem)))
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public CommentDto createComment(Long itemId, Long bookerId, CommentDto commentDto) {
-        User booker = userStorage.findById(bookerId).orElseThrow(() ->
+        User booker = userRepository.findById(bookerId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
-        Item item = itemStorage.findById(itemId).orElseThrow(() ->
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
         boolean canComment = booker.getBookings().stream()
                 .anyMatch(booking ->
@@ -122,13 +157,7 @@ public class ItemServiceImpl implements ItemService {
                 .booker(booker)
                 .build();
         Long id = commentRepository.save(comment).getId();
-        return commentRepository.findDto(id);
-    }
-
-    private Long findOwnerIdByItemId(Long itemId) {
-        Optional<Item> anItem = itemStorage.findById(itemId);
-        return anItem.map(item -> item.getOwner().getId()).orElseThrow(() ->
-                new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
+        return commentRepository.findCommentDto(id);
     }
 
 }

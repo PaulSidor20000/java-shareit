@@ -10,5 +10,6 @@ import lombok.Setter;
 public class BookingShort {
     private Long id;
     private Long bookerId;
+    private Long itemId;
 }
 
