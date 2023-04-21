@@ -2,32 +2,20 @@ package ru.practicum.shareit.item;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import ru.practicum.shareit.item.dto.CommentDto;
+import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query(
-            "select new ru.practicum.shareit.item.dto.CommentDto(c.id, c.text, c.authorName, c.created, c.item.id)" +
-                    " from Comment as c" +
-                    " where c.id = ?1"
-    )
-    CommentDto findCommentDto(Long id);
+    Collection<Comment> findByItemId(Long itemId);
 
     @Query(
-            "select new ru.practicum.shareit.item.dto.CommentDto(c.id, c.text, c.authorName, c.created, c.item.id)" +
-                    " from Comment as c" +
-                    " where item in ?1"
+            "select c" +
+                    " from Comment c" +
+                    " join c.item " +
+                    " where c.item.id in :items"
     )
-    Collection<CommentDto> findCommentDtosByItems(Collection<Item> items);
-
-    @Query(
-            "select new ru.practicum.shareit.item.dto.CommentDto(c.id, c.text, c.authorName, c.created, c.item.id)" +
-                    " from Comment as c" +
-                    " where item in ?1"
-    )
-    Collection<CommentDto> findCommentDtosByItem(Item item);
+    Collection<Comment> findByItemIds(@Param("items") Collection<Long> items);
 }

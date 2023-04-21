@@ -1,28 +1,24 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ItemMapper {
+import java.util.Collection;
 
-    public static Item toItem(ItemDto itemDto) {
-        return Item.builder()
-                .id(itemDto.getId())
-                .name(itemDto.getName())
-                .description(itemDto.getDescription())
-                .available(itemDto.getAvailable())
-                .build();
-    }
+@Mapper
+public interface ItemMapper {
+    ItemMapper mapper = Mappers.getMapper(ItemMapper.class);
 
-    public static ItemDto toItemDto(Item item) {
-        return ItemDto.builder()
-                .id(item.getId())
-                .name(item.getName())
-                .description(item.getDescription())
-                .available(item.isAvailable())
-                .build();
-    }
+    Item map(ItemDto itemDto);
+
+    ItemDto map(Item item);
+
+    Comment map(CommentDto commentDto);
+
+    CommentDto map(Comment comment);
+
+    Collection<CommentDto> map(Collection<Comment> comments);
 
 }

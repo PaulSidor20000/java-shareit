@@ -1,26 +1,14 @@
 package ru.practicum.shareit.booking.dto;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 import ru.practicum.shareit.booking.model.Booking;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class BookingMapper {
-    public static Booking toBooking(BookingDto bookingDto) {
-        return Booking.builder()
-                .start(bookingDto.getStart())
-                .end(bookingDto.getEnd())
-                .build();
-    }
+@Mapper
+public interface BookingMapper {
+    BookingMapper mapper = Mappers.getMapper(BookingMapper.class);
 
-    public static BookingDto toBookingDto(Booking booking) {
-        return BookingDto.builder()
-                .id(booking.getId())
-                .start(booking.getStart())
-                .end(booking.getEnd())
-                .status(booking.getStatus())
-                .booker(booking.getBooker())
-                .item(booking.getItem())
-                .build();
-    }
+    Booking map(BookingDto bookingDto);
+
+    BookingDto map(Booking booking);
 }

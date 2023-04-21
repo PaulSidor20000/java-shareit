@@ -1,7 +1,6 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.BookStatus;
@@ -23,7 +22,6 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.*;
 
-@Slf4j
 @Service("itemService")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -37,18 +35,19 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(Long ownerId, ItemDto itemDto) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId)));
-        Item item = ItemMapper.toItem(itemDto);
+        Item item = ItemMapper.mapper.map(itemDto);
         item.setOwner(owner);
 
-        return ItemMapper.toItemDto(itemRepository.save(item));
+        return ItemMapper.mapper.map(itemRepository.save(item));
     }
 
     @Override
     public ItemDto read(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
-        ItemDto itemDto = ItemMapper.toItemDto(item);
-        itemDto.setComments(commentRepository.findCommentDtosByItem(item));
+        ItemDto itemDto = ItemMapper.mapper.map(item);
+        Collection<Comment> comments = commentRepository.findByItemId(itemId);
+        itemDto.setComments(ItemMapper.mapper.map(comments));
 
         if (item.getOwner().getId().equals(userId)) {
             itemDto.setNextBooking(itemRepository.findNextBookingsOfItem(item).stream().findFirst().orElse(null));
@@ -74,11 +73,13 @@ public class ItemServiceImpl implements ItemService {
         itemDto.setDescription(itemDto.getDescription() == null ? item.getDescription() : itemDto.getDescription());
         itemDto.setAvailable(itemDto.getAvailable() == null ? item.isAvailable() : itemDto.getAvailable());
 
-        item = ItemMapper.toItem(itemDto);
+        item = ItemMapper.mapper.map(itemDto);
         item.setOwner(owner);
-        itemDto = ItemMapper.toItemDto(itemRepository.save(item));
+        itemDto = ItemMapper.mapper.map(itemRepository.save(item));
 
-        itemDto.setComments(commentRepository.findCommentDtosByItem(item));
+        Collection<Comment> comments = commentRepository.findByItemId(itemId);
+
+        itemDto.setComments(ItemMapper.mapper.map(comments));
         itemDto.setNextBooking(itemRepository.findNextBookingsOfItem(item).stream().findFirst().orElse(null));
         itemDto.setLastBooking(itemRepository.findLastBookingsOfItem(item).stream().findFirst().orElse(null));
 
@@ -96,7 +97,8 @@ public class ItemServiceImpl implements ItemService {
         Map<Long, Item> items = itemRepository.findAllByOwnerIdAndAvailableTrue(ownerId).stream()
                 .collect(Collectors.toMap(Item::getId, Function.identity()));
 
-        Map<Long, List<CommentDto>> commentDtos = commentRepository.findCommentDtosByItems(items.values()).stream()
+        Map<Long, List<CommentDto>> commentDtos = commentRepository.findByItemIds(items.keySet()).stream()
+                .map(ItemMapper.mapper::map)
                 .collect(Collectors.groupingBy(CommentDto::getItemId));
 
         Collection<BookingShort> nextBookings = itemRepository.findNextBookings(items.values());
@@ -105,7 +107,7 @@ public class ItemServiceImpl implements ItemService {
         return items.values().stream()
                 .sorted(Comparator.comparing(Item::getId))
                 .map(item -> {
-                    ItemDto itemDto = ItemMapper.toItemDto(item);
+                    ItemDto itemDto = ItemMapper.mapper.map(item);
                     itemDto.setNextBooking(nextBookings.stream()
                             .filter(bookingShort -> bookingShort.getItemId().equals(itemDto.getId()))
                             .findFirst()
@@ -129,7 +131,7 @@ public class ItemServiceImpl implements ItemService {
         }
         return itemRepository.findAllByNameIsLikeIgnoreCaseOrDescriptionIsLikeIgnoreCaseAndAvailableTrue(query, query)
                 .stream()
-                .map(ItemMapper::toItemDto)
+                .map(ItemMapper.mapper::map)
                 .collect(Collectors.toList());
     }
 
@@ -146,18 +148,20 @@ public class ItemServiceImpl implements ItemService {
                                 && booking.getStatus().equals(BookStatus.APPROVED)
                                 && booking.getStart().isBefore(LocalDateTime.now()));
 
-        if (!canComment) {
-            throw new ValidationException(String.format(FAILED_USER_ID + " can't comment", bookerId));
+        if (canComment) {
+            Comment comment = ItemMapper.mapper.map(commentDto);
+            comment.setAuthorName(booker.getName());
+            comment.setCreated(LocalDateTime.now());
+            comment.setItem(item);
+            comment.setBooker(booker);
+            Long id = commentRepository.save(comment).getId();
+
+            return commentRepository.findById(id)
+                    .map(ItemMapper.mapper::map)
+                    .orElse(null);
         }
-        Comment comment = Comment.builder()
-                .text(commentDto.getText())
-                .authorName(booker.getName())
-                .created(LocalDateTime.now())
-                .item(item)
-                .booker(booker)
-                .build();
-        Long id = commentRepository.save(comment).getId();
-        return commentRepository.findCommentDto(id);
+
+        throw new ValidationException(String.format(FAILED_USER_ID + " can't comment", bookerId));
     }
 
 }

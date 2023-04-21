@@ -1,7 +1,6 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -27,7 +26,6 @@ import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.*;
 
-@Slf4j
 @Service("bookingService")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -56,7 +54,7 @@ public class BookingServiceImpl implements BookingService {
 
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
-        Booking booking = BookingMapper.toBooking(bookingDto);
+        Booking booking = BookingMapper.mapper.map(bookingDto);
 
         booking.setStatus(BookStatus.WAITING);
         booking.setBooker(booker);
@@ -64,7 +62,7 @@ public class BookingServiceImpl implements BookingService {
 
         bookingRepository.save(booking);
 
-        return BookingMapper.toBookingDto(bookingRepository.findById(booking.getId()).orElseThrow(() ->
+        return BookingMapper.mapper.map(bookingRepository.findById(booking.getId()).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_BOOKING_ID, booking.getId()))));
     }
 
@@ -88,7 +86,7 @@ public class BookingServiceImpl implements BookingService {
             throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
 
-        return BookingMapper.toBookingDto(booking);
+        return BookingMapper.mapper.map(booking);
     }
 
     @Override
@@ -97,7 +95,7 @@ public class BookingServiceImpl implements BookingService {
                 new EntityNotFoundException(String.format(FAILED_BOOKING_ID, bookingId)));
 
         if (booking.getItem().getOwner().getId().equals(userId) || booking.getBooker().getId().equals(userId)) {
-            return BookingMapper.toBookingDto(booking);
+            return BookingMapper.mapper.map(booking);
         }
 
         throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
@@ -140,37 +138,37 @@ public class BookingServiceImpl implements BookingService {
                 return bookings.stream()
                         .filter(booking -> booking.getEnd().isBefore(now))
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper.mapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case CURRENT:
                 return bookings.stream()
                         .filter(booking -> booking.getStart().isBefore(now)
                                 && booking.getEnd().isAfter(now))
                         .sorted(Comparator.comparing(Booking::getEnd).reversed())
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper.mapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case FUTURE:
                 return bookings.stream()
                         .filter(booking -> booking.getEnd().isAfter(now))
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper.mapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case WAITING:
                 return bookings.stream()
                         .filter(booking -> booking.getStatus() == BookStatus.WAITING)
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper.mapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case REJECTED:
                 return bookings.stream()
                         .filter(booking -> booking.getStatus() == BookStatus.REJECTED)
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper.mapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             default:
                 return bookings.stream()
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper.mapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
         }
     }

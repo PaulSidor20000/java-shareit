@@ -1,19 +1,19 @@
 package ru.practicum.shareit.booking.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.shareit.booking.model.BookStatus;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-@Data
-@Builder
+@Getter
+@Setter
 public class BookingDto {
     private Long id;
 
@@ -32,9 +32,9 @@ public class BookingDto {
 
     private BookStatus status;
 
-    private User booker;
+    private UserDto booker;
 
-    private Item item;
+    private ItemDto item;
 
 }
 

@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EmailDuplicateException;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 import static ru.practicum.shareit.exceptions.ErrorHandler.DUPLICATED_EMAIL;
 import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_USER_ID;
 
-@Slf4j
 @Service("userService")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -26,14 +24,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto create(UserDto userDto) {
-        User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userRepository.save(user));
+        User user = UserMapper.mapper.map(userDto);
+        return UserMapper.mapper.map(userRepository.save(user));
     }
 
     @Override
     public UserDto read(Long userId) {
         return userRepository.findById(userId)
-                .map(UserMapper::toUserDto)
+                .map(UserMapper.mapper::map)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, userId)));
     }
 
@@ -54,8 +52,8 @@ public class UserServiceImpl implements UserService {
         userDto.setEmail(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail());
         userDto.setName(userDto.getName() == null ? user.getName() : userDto.getName());
 
-        user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userRepository.save(user));
+        user = UserMapper.mapper.map(userDto);
+        return UserMapper.mapper.map(userRepository.save(user));
     }
 
     @Override
@@ -67,7 +65,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(UserMapper::toUserDto)
+                .map(UserMapper.mapper::map)
                 .collect(Collectors.toList());
     }
 
