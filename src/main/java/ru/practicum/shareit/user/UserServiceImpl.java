@@ -19,19 +19,20 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_USER_ID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
+    private final UserMapper userMapper;
     private final UserRepository userRepository;
 
     @Override
     @Transactional
     public UserDto create(UserDto userDto) {
-        User user = UserMapper.mapper.map(userDto);
-        return UserMapper.mapper.map(userRepository.save(user));
+        User user = userMapper.map(userDto);
+        return userMapper.map(userRepository.save(user));
     }
 
     @Override
     public UserDto read(Long userId) {
         return userRepository.findById(userId)
-                .map(UserMapper.mapper::map)
+                .map(userMapper::map)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, userId)));
     }
 
@@ -48,12 +49,8 @@ public class UserServiceImpl implements UserService {
                     }
                 });
 
-        userDto.setId(userId);
-        userDto.setEmail(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail());
-        userDto.setName(userDto.getName() == null ? user.getName() : userDto.getName());
-
-        user = UserMapper.mapper.map(userDto);
-        return UserMapper.mapper.map(userRepository.save(user));
+        user = userMapper.merge(userId, user, userDto);
+        return userMapper.map(userRepository.save(user));
     }
 
     @Override
@@ -65,7 +62,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Collection<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(UserMapper.mapper::map)
+                .map(userMapper::map)
                 .collect(Collectors.toList());
     }
 

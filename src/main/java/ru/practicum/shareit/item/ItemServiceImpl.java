@@ -3,11 +3,12 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dto.BookingShort;
 import ru.practicum.shareit.booking.model.BookStatus;
-import ru.practicum.shareit.booking.model.BookingShort;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
@@ -16,7 +17,9 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,6 +29,8 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.*;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
+    private final ItemMapper itemMapper;
+    private final CommentMapper commentMapper;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
@@ -35,27 +40,21 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto create(Long ownerId, ItemDto itemDto) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId)));
-        Item item = ItemMapper.mapper.map(itemDto);
-        item.setOwner(owner);
+        Item item = itemMapper.merge(owner, itemDto);
 
-        return ItemMapper.mapper.map(itemRepository.save(item));
+        return itemMapper.mapOneForOwner(itemRepository.save(item));
     }
 
     @Override
     public ItemDto read(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, itemId)));
-        ItemDto itemDto = ItemMapper.mapper.map(item);
-        Collection<Comment> comments = commentRepository.findByItemId(itemId);
-        itemDto.setComments(ItemMapper.mapper.map(comments));
 
         if (item.getOwner().getId().equals(userId)) {
-            itemDto.setNextBooking(itemRepository.findNextBookingsOfItem(item).stream().findFirst().orElse(null));
-            itemDto.setLastBooking(itemRepository.findLastBookingsOfItem(item).stream().findFirst().orElse(null));
-
-            return itemDto;
+            return itemMapper.mapOneForOwner(item);
         }
-        return itemDto;
+
+        return itemMapper.mapForUser(item);
     }
 
     @Override
@@ -68,22 +67,9 @@ public class ItemServiceImpl implements ItemService {
         if (!owner.getId().equals(ownerId)) {
             throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
-        itemDto.setId(itemId);
-        itemDto.setName(itemDto.getName() == null ? item.getName() : itemDto.getName());
-        itemDto.setDescription(itemDto.getDescription() == null ? item.getDescription() : itemDto.getDescription());
-        itemDto.setAvailable(itemDto.getAvailable() == null ? item.isAvailable() : itemDto.getAvailable());
+        item = itemMapper.merge(item, itemDto);
 
-        item = ItemMapper.mapper.map(itemDto);
-        item.setOwner(owner);
-        itemDto = ItemMapper.mapper.map(itemRepository.save(item));
-
-        Collection<Comment> comments = commentRepository.findByItemId(itemId);
-
-        itemDto.setComments(ItemMapper.mapper.map(comments));
-        itemDto.setNextBooking(itemRepository.findNextBookingsOfItem(item).stream().findFirst().orElse(null));
-        itemDto.setLastBooking(itemRepository.findLastBookingsOfItem(item).stream().findFirst().orElse(null));
-
-        return itemDto;
+        return itemMapper.mapOneForOwner(itemRepository.save(item));
     }
 
     @Override
@@ -94,44 +80,30 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> findAllItemsOfOwner(Long ownerId) {
-        Map<Long, Item> items = itemRepository.findAllByOwnerIdAndAvailableTrue(ownerId).stream()
+        Map<Long, Item> items = itemRepository.findItemsByOwnerIdAndFetchAllEntities(ownerId).stream()
                 .collect(Collectors.toMap(Item::getId, Function.identity()));
 
-        Map<Long, List<CommentDto>> commentDtos = commentRepository.findByItemIds(items.keySet()).stream()
-                .map(ItemMapper.mapper::map)
-                .collect(Collectors.groupingBy(CommentDto::getItemId));
+        Map<Long, BookingShort> nextBookings = itemRepository.findNextBookings(items.keySet()).stream()
+                .collect(Collectors.toMap(BookingShort::getItemId, Function.identity()));
 
-        Collection<BookingShort> nextBookings = itemRepository.findNextBookings(items.values());
-        Collection<BookingShort> lastBookings = itemRepository.findLastBookings(items.values());
+        Map<Long, BookingShort> lastBookings = itemRepository.findLastBookings(items.keySet()).stream()
+                .collect(Collectors.toMap(BookingShort::getItemId, Function.identity()));
 
         return items.values().stream()
-                .sorted(Comparator.comparing(Item::getId))
-                .map(item -> {
-                    ItemDto itemDto = ItemMapper.mapper.map(item);
-                    itemDto.setNextBooking(nextBookings.stream()
-                            .filter(bookingShort -> bookingShort.getItemId().equals(itemDto.getId()))
-                            .findFirst()
-                            .orElse(null));
-                    itemDto.setLastBooking(lastBookings.stream()
-                            .filter(bookingShort -> bookingShort.getItemId().equals(itemDto.getId()))
-                            .findFirst()
-                            .orElse(null));
-                    itemDto.setComments(commentDtos.get(itemDto.getId()));
-
-                    return itemDto;
-                })
+                .map(item -> itemMapper.mapForUser(item)
+                        .setNextBooking(nextBookings.get(item.getId()))
+                        .setLastBooking(lastBookings.get(item.getId())))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Collection<ItemDto> search(String searchRequest) {
-        final String query = "%" + searchRequest + "%";
-        if (query.equals("%%")) {
+    public Collection<ItemDto> search(String query) {
+        if (query.equals("")) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllByNameIsLikeIgnoreCaseOrDescriptionIsLikeIgnoreCaseAndAvailableTrue(query, query)
+        return itemRepository.searchByNameAndDescription(query)
                 .stream()
-                .map(ItemMapper.mapper::map)
+                .map(itemMapper::mapForUser)
                 .collect(Collectors.toList());
     }
 
@@ -149,16 +121,9 @@ public class ItemServiceImpl implements ItemService {
                                 && booking.getStart().isBefore(LocalDateTime.now()));
 
         if (canComment) {
-            Comment comment = ItemMapper.mapper.map(commentDto);
-            comment.setAuthorName(booker.getName());
-            comment.setCreated(LocalDateTime.now());
-            comment.setItem(item);
-            comment.setBooker(booker);
-            Long id = commentRepository.save(comment).getId();
+            Comment comment = commentMapper.merge(booker, item, commentDto);
 
-            return commentRepository.findById(id)
-                    .map(ItemMapper.mapper::map)
-                    .orElse(null);
+            return commentMapper.map(commentRepository.save(comment));
         }
 
         throw new ValidationException(String.format(FAILED_USER_ID + " can't comment", bookerId));

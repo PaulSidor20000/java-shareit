@@ -5,26 +5,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
 
-import java.util.Collection;
 import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query(
             "select b" +
                     " from Booking b" +
-                    " join fetch b.item" +
+                    " join fetch b.item i" +
                     " join fetch b.booker" +
+                    " left join fetch i.comments" +
                     " where b.id in :bookingId"
     )
     Optional<Booking> findBookingByIdAndFetchAllEntities(@Param("bookingId") Long bookingId);
-
-    @Query(
-            "select b" +
-                    " from Booking b" +
-                    " join fetch b.item" +
-                    " join fetch b.booker" +
-                    " where b.id in :bookingIds"
-    )
-    Collection<Booking> findBookingsAndFetchAllEntities(@Param("bookingIds") Collection<Long> bookingIds);
 
 }

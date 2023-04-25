@@ -1,6 +1,7 @@
 package ru.practicum.shareit.exceptions;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,7 +25,6 @@ public class ErrorHandler {
     public static final String FAILED_OWNER_ID = "Failed owner id: %s";
     public static final String FAILED_BOOKING_ID = "Failed booking id: %s";
     public static final String DUPLICATED_EMAIL = "Duplicated email found: %s";
-    public static final String ENTITY_NOT_FOUND_MESSAGE = "Failed to find an entity: %s in database";
 
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> validationAnnotationHandler(MethodArgumentNotValidException error) {
@@ -65,6 +65,12 @@ public class ErrorHandler {
     public ResponseEntity<Map<String, String>> validationEmailHandler(EmailDuplicateException error) {
         log.warn(LOG_ERROR, error.getMessage());
         return ResponseEntity.status(409).body(Map.of(A_ERROR, error.getMessage()));
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> validationEmailHandler(DataIntegrityViolationException error) {
+        log.warn(LOG_ERROR, error.getMessage());
+        return ResponseEntity.status(409).body(Map.of(A_ERROR, Objects.requireNonNull(error.getMessage())));
     }
 
     @ExceptionHandler

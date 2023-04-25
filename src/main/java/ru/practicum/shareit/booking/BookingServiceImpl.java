@@ -18,10 +18,7 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.*;
@@ -33,6 +30,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final BookingMapper bookingMapper;
 
     @Override
     @Transactional
@@ -41,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingNotMatchException("Failed Booking DTO validation");
         }
 
-        Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(() ->
+        Item item = itemRepository.findItemByIdAndFetchComments(bookingDto.getItemId()).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, bookingDto.getItemId())));
 
         if (!item.isAvailable()) {
@@ -54,16 +52,9 @@ public class BookingServiceImpl implements BookingService {
 
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
-        Booking booking = BookingMapper.mapper.map(bookingDto);
+        Booking booking = bookingMapper.merge(booker, item, bookingDto);
 
-        booking.setStatus(BookStatus.WAITING);
-        booking.setBooker(booker);
-        booking.setItem(item);
-
-        bookingRepository.save(booking);
-
-        return BookingMapper.mapper.map(bookingRepository.findById(booking.getId()).orElseThrow(() ->
-                new EntityNotFoundException(String.format(FAILED_BOOKING_ID, booking.getId()))));
+        return bookingMapper.map(bookingRepository.save(booking));
     }
 
     @Override
@@ -86,7 +77,7 @@ public class BookingServiceImpl implements BookingService {
             throw new EntityNotFoundException(String.format(FAILED_OWNER_ID, ownerId));
         }
 
-        return BookingMapper.mapper.map(booking);
+        return bookingMapper.map(booking);
     }
 
     @Override
@@ -95,7 +86,7 @@ public class BookingServiceImpl implements BookingService {
                 new EntityNotFoundException(String.format(FAILED_BOOKING_ID, bookingId)));
 
         if (booking.getItem().getOwner().getId().equals(userId) || booking.getBooker().getId().equals(userId)) {
-            return BookingMapper.mapper.map(booking);
+            return bookingMapper.map(booking);
         }
 
         throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
@@ -106,11 +97,7 @@ public class BookingServiceImpl implements BookingService {
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
 
-        Collection<Long> bookingIds = booker.getBookings().stream()
-                .map(Booking::getId)
-                .collect(Collectors.toSet());
-
-        Collection<Booking> bookings = bookingRepository.findBookingsAndFetchAllEntities(bookingIds);
+        Collection<Booking> bookings = userRepository.findBookingsOfUserAndFetchAllEntities(booker);
 
         return getBookingStatistics(bookings, requestState);
     }
@@ -120,12 +107,7 @@ public class BookingServiceImpl implements BookingService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
 
-        Collection<Long> bookingIds = owner.getItems().stream()
-                .flatMap(item -> item.getBookings().stream())
-                .map(Booking::getId)
-                .collect(Collectors.toSet());
-
-        Collection<Booking> bookings = bookingRepository.findBookingsAndFetchAllEntities(bookingIds);
+        Collection<Booking> bookings = userRepository.findBookingOfOwnerIdAndFetchAllEntities(owner);
 
         return getBookingStatistics(bookings, requestState);
     }
@@ -138,37 +120,37 @@ public class BookingServiceImpl implements BookingService {
                 return bookings.stream()
                         .filter(booking -> booking.getEnd().isBefore(now))
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper.mapper::map)
+                        .map(bookingMapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case CURRENT:
                 return bookings.stream()
                         .filter(booking -> booking.getStart().isBefore(now)
                                 && booking.getEnd().isAfter(now))
                         .sorted(Comparator.comparing(Booking::getEnd).reversed())
-                        .map(BookingMapper.mapper::map)
+                        .map(bookingMapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case FUTURE:
                 return bookings.stream()
                         .filter(booking -> booking.getEnd().isAfter(now))
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper.mapper::map)
+                        .map(bookingMapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case WAITING:
                 return bookings.stream()
                         .filter(booking -> booking.getStatus() == BookStatus.WAITING)
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper.mapper::map)
+                        .map(bookingMapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             case REJECTED:
                 return bookings.stream()
                         .filter(booking -> booking.getStatus() == BookStatus.REJECTED)
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper.mapper::map)
+                        .map(bookingMapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
             default:
                 return bookings.stream()
                         .sorted(Comparator.comparing(Booking::getStart).reversed())
-                        .map(BookingMapper.mapper::map)
+                        .map(bookingMapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
         }
     }

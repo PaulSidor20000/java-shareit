@@ -2,12 +2,14 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.booking.model.BookingShort;
+import lombok.experimental.Accessors;
+import ru.practicum.shareit.booking.dto.BookingShort;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
+@Accessors(chain = true)
 @Getter
 @Setter
 public class ItemDto {
