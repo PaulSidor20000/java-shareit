@@ -6,6 +6,7 @@ import lombok.ToString;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -39,6 +40,10 @@ public class User {
     @ToString.Exclude
     @OneToMany(mappedBy = "booker", fetch = FetchType.LAZY)
     private Set<Comment> comments;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<ItemRequest> requests;
 
     @Override
     public boolean equals(Object o) {

@@ -8,7 +8,9 @@ import ru.practicum.shareit.booking.dto.BookingShort;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
@@ -92,4 +94,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             nativeQuery = true
     )
     Optional<BookingShort> findLastBookingsOfItem(@Param("itemId") Long itemId);
+
+    @Query(
+            "select i" +
+                    " from Item i" +
+                    " left join fetch i.comments" +
+                    " where i.requestId in :ids"
+    )
+    List<Item> findAllItemsByRequestIds(@Param("ids") Set<Long> requestIds);
 }
