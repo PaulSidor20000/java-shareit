@@ -44,13 +44,19 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> findAllItemsOfOwner(@RequestHeader(USER_ID) Long ownerId) {
-        return itemService.findAllItemsOfOwner(ownerId);
+    public Collection<ItemDto> findAllItemsOfOwner(@RequestHeader(USER_ID) Long ownerId,
+                                                   @RequestParam(required = false, defaultValue = "0") Integer from,
+                                                   @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        return itemService.findAllItemsOfOwner(ownerId, from, size);
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> search(@RequestParam(value = "text") String searchRequest) {
-        return itemService.search(searchRequest);
+    public Collection<ItemDto> search(@RequestParam(value = "text") String searchRequest,
+                                      @RequestParam(required = false, defaultValue = "0") Integer from,
+                                      @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        return itemService.search(searchRequest, from, size);
     }
 
     @PostMapping("/{id}/comment")

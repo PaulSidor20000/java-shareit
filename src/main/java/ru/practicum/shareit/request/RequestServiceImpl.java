@@ -16,7 +16,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.exceptions.ErrorHandler.*;
+import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_REQUEST;
+import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_USER_ID;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +68,7 @@ public class RequestServiceImpl implements RequestService {
             throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
         }
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+
         Map<Long, ItemRequest> requests = requestRepository.findAllExceptUserId(userId, page).stream()
                 .collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
 

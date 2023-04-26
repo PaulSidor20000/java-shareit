@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -8,10 +9,7 @@ import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.BookState;
 import ru.practicum.shareit.booking.model.BookStatus;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.exceptions.BookingNotMatchException;
-import ru.practicum.shareit.exceptions.EntityNotFoundException;
-import ru.practicum.shareit.exceptions.UnknownStateException;
-import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
@@ -93,23 +91,32 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getBookerStatistics(Long bookerId, String requestState) {
-        User booker = userRepository.findById(bookerId)
+    public List<BookingDto> getBookerStatistics(Long bookerId, String requestState, Integer from, Integer size) {
+        PageRequest page = getPage(from, size);
+        User booker= userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
 
-        Collection<Booking> bookings = userRepository.findBookingsOfUserAndFetchAllEntities(booker);
+        Collection<Booking> bookings = userRepository.findBookingsOfUserAndFetchAllEntities(booker, page);
 
         return getBookingStatistics(bookings, requestState);
     }
 
     @Override
-    public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState) {
-        User owner = userRepository.findById(ownerId)
+    public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState, Integer from, Integer size) {
+        PageRequest page = getPage(from, size);
+        User owner= userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
 
-        Collection<Booking> bookings = userRepository.findBookingOfOwnerIdAndFetchAllEntities(owner);
+        Collection<Booking> bookings = userRepository.findBookingOfOwnerIdAndFetchAllEntities(owner, page);
 
         return getBookingStatistics(bookings, requestState);
+    }
+
+    private PageRequest getPage(Integer from, Integer size) {
+        if (from < 0 || size <= 0) {
+            throw new RequestNotValidException(FAILED_REQUEST);
+        }
+        return PageRequest.of(from > 0 ? from / size : 0, size);
     }
 
     private List<BookingDto> getBookingStatistics(Collection<Booking> bookings, String requestState) {

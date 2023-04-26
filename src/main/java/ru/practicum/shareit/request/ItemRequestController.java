@@ -29,7 +29,8 @@ public class ItemRequestController {
     @GetMapping("/all")
     public Collection<ItemRequestDto> findAllRequestsOfOthers(@RequestHeader(USER_ID) Long userId,
                                                               @RequestParam(required = false, defaultValue = "0") Integer from,
-                                                              @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                                              @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
         return requestService.findAllRequestsOfOthers(userId, from, size);
     }
 

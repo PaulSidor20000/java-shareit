@@ -15,9 +15,9 @@ public interface ItemService {
 
     void delete(Long userId);
 
-    Collection<ItemDto> findAllItemsOfOwner(Long ownerId);
+    Collection<ItemDto> findAllItemsOfOwner(Long ownerId, Integer from, Integer size);
 
-    Collection<ItemDto> search(String searchRequest);
+    Collection<ItemDto> search(String searchRequest, Integer from, Integer size);
 
     CommentDto createComment(Long itemId, Long bookerId, CommentDto commentDto);
 }
