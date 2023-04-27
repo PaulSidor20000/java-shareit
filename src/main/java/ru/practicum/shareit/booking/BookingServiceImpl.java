@@ -16,7 +16,10 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exceptions.ErrorHandler.*;
@@ -93,7 +96,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getBookerStatistics(Long bookerId, String requestState, Integer from, Integer size) {
         PageRequest page = getPage(from, size);
-        User booker= userRepository.findById(bookerId)
+        User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
 
         Collection<Booking> bookings = userRepository.findBookingsOfUserAndFetchAllEntities(booker, page);
@@ -104,7 +107,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState, Integer from, Integer size) {
         PageRequest page = getPage(from, size);
-        User owner= userRepository.findById(ownerId)
+        User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
 
         Collection<Booking> bookings = userRepository.findBookingOfOwnerIdAndFetchAllEntities(owner, page);

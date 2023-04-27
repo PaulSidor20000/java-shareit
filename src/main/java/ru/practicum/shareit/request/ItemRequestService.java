@@ -4,7 +4,7 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.Collection;
 
-public interface RequestService {
+public interface ItemRequestService {
     ItemRequestDto create(Long userId, ItemRequestDto itemRequestDto);
 
     Collection<ItemRequestDto> findAllRequestsOfUser(Long userId);

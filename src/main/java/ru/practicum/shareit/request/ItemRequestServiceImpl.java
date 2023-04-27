@@ -8,7 +8,7 @@ import ru.practicum.shareit.exceptions.RequestNotValidException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.dto.RequestMapper;
+import ru.practicum.shareit.request.dto.ItemRequestMapper;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
@@ -21,19 +21,19 @@ import static ru.practicum.shareit.exceptions.ErrorHandler.FAILED_USER_ID;
 
 @Service
 @RequiredArgsConstructor
-public class RequestServiceImpl implements RequestService {
-    private final RequestRepository requestRepository;
+public class ItemRequestServiceImpl implements ItemRequestService {
+    private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
-    private final RequestMapper requestMapper;
+    private final ItemRequestMapper itemRequestMapper;
     private final ItemRepository itemRepository;
 
     @Override
     public ItemRequestDto create(Long userId, ItemRequestDto itemRequestDto) {
         User user = userRepository.findById(userId).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_USER_ID, userId)));
-        ItemRequest itemRequest = requestMapper.merge(user, itemRequestDto);
+        ItemRequest itemRequest = itemRequestMapper.merge(user, itemRequestDto);
 
-        return requestMapper.map(requestRepository.save(itemRequest));
+        return itemRequestMapper.map(itemRequestRepository.save(itemRequest));
     }
 
     @Override
@@ -41,11 +41,11 @@ public class RequestServiceImpl implements RequestService {
         if (!userIsExist(userId)) {
             throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
         }
-        ItemRequest itemRequest = requestRepository.findById(requestId).orElseThrow(() ->
+        ItemRequest itemRequest = itemRequestRepository.findById(requestId).orElseThrow(() ->
                 new EntityNotFoundException(FAILED_REQUEST));
         List<Item> items = itemRepository.findAllItemsByRequestIds(Set.of(itemRequest.getId()));
 
-        return requestMapper.merge(items, itemRequest);
+        return itemRequestMapper.merge(items, itemRequest);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class RequestServiceImpl implements RequestService {
         if (!userIsExist(userId)) {
             throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
         }
-        Map<Long, ItemRequest> requests = requestRepository.findByUserId(userId).stream()
+        Map<Long, ItemRequest> requests = itemRequestRepository.findByUserId(userId).stream()
                 .collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
 
         return getItems(requests);
@@ -69,7 +69,7 @@ public class RequestServiceImpl implements RequestService {
         }
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
 
-        Map<Long, ItemRequest> requests = requestRepository.findAllExceptUserId(userId, page).stream()
+        Map<Long, ItemRequest> requests = itemRequestRepository.findAllExceptUserId(userId, page).stream()
                 .collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
 
         return getItems(requests);
@@ -81,7 +81,7 @@ public class RequestServiceImpl implements RequestService {
 
         return requests.values().stream()
                 .sorted(Comparator.comparing(ItemRequest::getCreated).reversed())
-                .map(itemRequest -> requestMapper.merge(items.getOrDefault(itemRequest.getId(), List.of()), itemRequest))
+                .map(itemRequest -> itemRequestMapper.merge(items.getOrDefault(itemRequest.getId(), List.of()), itemRequest))
                 .collect(Collectors.toList());
     }
 

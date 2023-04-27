@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper(componentModel = "spring", imports = LocalDateTime.class)
-public interface RequestMapper {
+public interface ItemRequestMapper {
 
     ItemRequestDto map(ItemRequest itemRequest);
 
