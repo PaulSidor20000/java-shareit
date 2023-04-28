@@ -21,34 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceImplTest {
+class UserServiceImplTest extends TestEnvironment {
     @Mock
     private UserMapper mockUserMapper;
     @Mock
     private UserRepository mockUserRepository;
     @InjectMocks
     private UserServiceImpl userService;
-
-    UserDto userDtoIn;
-    UserDto userDtoOut;
-    User user;
-
-    @BeforeEach
-    void setUp() {
-        userDtoIn = new UserDto();
-        userDtoIn.setName("John");
-        userDtoIn.setEmail("john@mail.com");
-
-        userDtoOut = new UserDto();
-        userDtoOut.setId(1L);
-        userDtoOut.setName("John");
-        userDtoOut.setEmail("john@mail.com");
-
-        user = new User();
-        user.setId(1L);
-        user.setName("John");
-        user.setEmail("john@mail.com");
-    }
 
     @Test
     void createTest_whenInvoke_thenReturnUserDto() {
@@ -116,7 +95,12 @@ class UserServiceImplTest {
     }
 
     @Test
-    void delete() {
+    void deleteTest_whenInvoke_thenCheckInvocationOfIt() {
+        long userId = 1L;
+
+        userService.delete(userId);
+
+        verify(mockUserRepository).deleteById(userId);
     }
 
     @Test
