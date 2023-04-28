@@ -94,10 +94,10 @@ class UserControllerIT extends TestEnvironment {
     @Test
     void updateTest_whenInvoke_thenReturnStatusOk() {
         long userId = 1L;
-        when(mockUserService.update(userId, userDtoPatch)).thenReturn(userDtoOut);
+        when(mockUserService.update(userId, userDtoPatchName)).thenReturn(userDtoOut);
 
         String jsonResult = mockMvc.perform(patch("/users/{id}", userId)
-                        .content(objectMapper.writeValueAsString(userDtoPatch))
+                        .content(objectMapper.writeValueAsString(userDtoPatchName))
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
@@ -108,7 +108,7 @@ class UserControllerIT extends TestEnvironment {
                 .getContentAsString();
 
         assertEquals(objectMapper.writeValueAsString(userDtoOut), jsonResult);
-        verify(mockUserService).update(userId, userDtoPatch);
+        verify(mockUserService).update(userId, userDtoPatchName);
     }
 
     @SneakyThrows

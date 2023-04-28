@@ -7,13 +7,17 @@ import ru.practicum.shareit.user.model.User;
 public class TestEnvironment {
     protected UserDto userDtoIn;
     protected UserDto userDtoOut;
-    protected UserDto userDtoPatch;
+    protected UserDto userDtoPatchName;
+    protected UserDto userDtoPatchEmail;
     protected User user;
 
     @BeforeEach
     void setUp() {
-        userDtoPatch = new UserDto();
-        userDtoPatch.setName("John");
+        userDtoPatchName = new UserDto();
+        userDtoPatchName.setName("Sam");
+
+        userDtoPatchEmail = new UserDto();
+        userDtoPatchEmail.setEmail("sam@mail.com");
 
         userDtoIn = new UserDto();
         userDtoIn.setName("John");

@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -25,7 +26,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     " where u = :owner" +
                     " order by b.id desc"
     )
-    Collection<Booking> findBookingOfOwnerIdAndFetchAllEntities(@Param("owner") User owner, PageRequest page);
+    List<Booking> findBookingOfOwnerIdAndFetchAllEntities(@Param("owner") User owner, PageRequest page);
 
     @Query(
             "select b" +
@@ -37,5 +38,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     " where u = :booker" +
                     " order by b.id desc"
     )
-    Collection<Booking> findBookingsOfUserAndFetchAllEntities(@Param("booker") User booker, PageRequest page);
+    List<Booking> findBookingsOfUserAndFetchAllEntities(@Param("booker") User booker, PageRequest page);
 }
