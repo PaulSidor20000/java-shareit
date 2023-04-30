@@ -17,12 +17,16 @@ VALUES ('user1', 'user1@mail.ru'),
        ('user3', 'user3@mail.ru');
 
 INSERT INTO items (name, description, available, owner_id, request_id)
-VALUES ('Дрель', 'Простая дрель', true, 1, null),
-       ('Дрель', 'Дрель аккумуляторная', true, 2, null),
-       ('Отвёртка', 'Отвёртка аккумуляторная', true, 3, null);
+VALUES ('Item1', 'Item1 Description', true, 1, null),
+       ('Item2', 'Item2 Description', true, 2, null),
+       ('Item3 search', 'Item3 Description', true, 2, null),
+       ('Item4', 'Item4 Description search', true, 3, 1);
 
 INSERT INTO bookings (status, start_time, end_time, item_id, booker_id)
-VALUES ('WAITING', '2023-05-10T12:00:00', '2023-05-12T12:00:00', 1, 2),
-       ('APPROVED', '2023-04-26T12:00:00', '2023-05-26T12:00:00', 2, 3),
+VALUES ('WAITING', '2023-08-10T12:00:00', '2023-09-10T12:00:00', 1, 2),
+--        ('APPROVED', '2023-03-26T12:00:00', '2023-04-26T12:00:00', 2, 3),
+--        ('APPROVED', '2023-05-26T12:00:00', '2023-06-26T12:00:00', 2, 3),
+--        ('APPROVED', '2023-05-26T12:00:00', '2023-06-26T12:00:00', 3, 3),
        ('REJECTED', '2023-04-26T12:00:00', '2023-04-27T12:00:00', 1, 2),
-       ('APPROVED', '2023-04-26T12:00:00', '2023-04-27T12:00:00', 1, 3);
+       ('APPROVED', '2023-04-26T12:00:00', '2023-04-27T12:00:00', 1, 3),
+       ('APPROVED', '2023-05-10T12:00:00', '2023-06-10T12:00:00', 1, 2);

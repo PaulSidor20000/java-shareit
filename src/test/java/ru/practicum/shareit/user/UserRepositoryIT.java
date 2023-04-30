@@ -41,19 +41,19 @@ class UserRepositoryIT {
         List<Booking> bookings = userRepository.findBookingOfOwnerIdAndFetchAllEntities(owner, page);
 
         assertFalse(bookings.isEmpty());
-        assertEquals(3, bookings.size());
+        assertEquals(4, bookings.size());
         assertEquals(owner, bookings.get(0).getItem().getOwner());
     }
 
     @Test
     void findBookingsOfUserAndFetchAllEntities() {
-        User booker = userRepository.findById(3L).get();
+        User booker = userRepository.findById(2L).get();
         PageRequest page = PageRequest.of(0, 20);
 
         List<Booking> bookings = userRepository.findBookingsOfUserAndFetchAllEntities(booker, page);
 
         assertFalse(bookings.isEmpty());
-        assertEquals(2, bookings.size());
+        assertEquals(3, bookings.size());
         assertEquals(booker, bookings.get(0).getBooker());
     }
 }

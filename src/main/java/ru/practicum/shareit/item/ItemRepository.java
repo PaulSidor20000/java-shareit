@@ -33,7 +33,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " or lower(i.description) like lower(concat('%', :query, '%')))" +
                     " order by i.id"
     )
-    Collection<Item> searchByNameAndDescription(@Param("query") String query, PageRequest page);
+    List<Item> searchByNameAndDescription(@Param("query") String query, PageRequest page);
 
     @Query(
             "select i" +
@@ -42,7 +42,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " left join fetch i.comments" +
                     " where o.id = :id"
     )
-    Collection<Item> findItemsByOwnerIdAndFetchAllEntities(@Param("id") Long ownerId, PageRequest page);
+    List<Item> findItemsByOwnerIdAndFetchAllEntities(@Param("id") Long ownerId, PageRequest page);
 
     @Query(
             value = "select b.id as id, b.booker_id as bookerId, b.item_id as itemId" +
@@ -55,7 +55,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " limit 1",
             nativeQuery = true
     )
-    Collection<BookingShort> findNextBookings(@Param("itemIds") Collection<Long> itemIds);
+    List<BookingShort> findNextBookings(@Param("itemIds") Collection<Long> itemIds);
 
     @Query(
             value = "select b.id as id, b.booker_id as bookerId, b.item_id as itemId" +
@@ -68,7 +68,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " limit 1",
             nativeQuery = true
     )
-    Collection<BookingShort> findLastBookings(@Param("itemIds") Collection<Long> itemIds);
+    List<BookingShort> findLastBookings(@Param("itemIds") Collection<Long> itemIds);
 
     @Query(
             value = "select b.id as id, b.booker_id as bookerId, b.item_id as itemId" +

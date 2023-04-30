@@ -19,8 +19,8 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -81,7 +81,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> findAllItemsOfOwner(Long ownerId, Integer from, Integer size) {
+    public List<ItemDto> findAllItemsOfOwner(Long ownerId, Integer from, Integer size) {
         PageRequest page = getPage(from, size);
 
         Map<Long, Item> items = itemRepository.findItemsByOwnerIdAndFetchAllEntities(ownerId, page).stream()
@@ -101,7 +101,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> search(String query, Integer from, Integer size) {
+    public List<ItemDto> search(String query, Integer from, Integer size) {
         PageRequest page = getPage(from, size);
 
         if (query.equals("")) {
