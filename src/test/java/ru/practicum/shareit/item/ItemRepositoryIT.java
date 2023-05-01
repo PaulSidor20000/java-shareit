@@ -10,7 +10,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingShort;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.UserRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ItemRepositoryIT {
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
 
     @Test
     void findItemByIdAndFetchComments() {

@@ -1,6 +1,7 @@
 package ru.practicum.shareit;
 
 import org.junit.jupiter.api.BeforeEach;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingShort;
 import ru.practicum.shareit.booking.dto.BookingShortImpl;
 import ru.practicum.shareit.booking.model.BookStatus;
@@ -22,6 +23,7 @@ public class TestEnvironment {
     protected Item item, item2;
     protected BookingShort nextBooking, lastBooking;
     protected Booking booking, bookingRejected, booking2;
+    protected BookingDto bookingDtoIn, bookingDtoOut, bookingDtoInFut;
     protected CommentDto commentDto;
     protected Comment comment;
 
@@ -57,7 +59,6 @@ public class TestEnvironment {
         owner.setName("Owner");
         owner.setEmail("owner@mail.ru");
 
-
         itemDtoIn = new ItemDto();
         itemDtoIn.setName("Item1");
         itemDtoIn.setDescription("Item1 Description");
@@ -70,7 +71,6 @@ public class TestEnvironment {
         itemDtoOut.setAvailable(true);
 
         itemDtoPatch = new ItemDto();
-
 
         item = new Item();
         item.setId(1L);
@@ -91,12 +91,31 @@ public class TestEnvironment {
         nextBooking = new BookingShortImpl(1L, 1L, 1L);
         lastBooking = new BookingShortImpl(1L, 1L, 1L);
 
+        bookingDtoInFut = new BookingDto();
+        bookingDtoInFut.setItemId(3L);
+        bookingDtoInFut.setStart(LocalDateTime.now().plusDays(1));
+        bookingDtoInFut.setEnd(LocalDateTime.now().plusDays(2));
+
+        bookingDtoIn = new BookingDto();
+        bookingDtoIn.setItemId(1L);
+        bookingDtoIn.setStart(LocalDateTime.now().minusDays(2));
+        bookingDtoIn.setEnd(LocalDateTime.now().minusDays(1));
+
+        bookingDtoOut = new BookingDto();
+        bookingDtoOut.setItemId(1L);
+        bookingDtoOut.setStart(LocalDateTime.now().minusDays(2));
+        bookingDtoOut.setEnd(LocalDateTime.now().minusDays(1));
+        bookingDtoOut.setStatus(BookStatus.APPROVED);
+        bookingDtoOut.setBooker(userDtoOut);
+        bookingDtoOut.setItem(itemDtoOut);
+
         booking = new Booking();
-        booking.setId(1L);
+     //   booking.setId(1L);
         booking.setStatus(BookStatus.APPROVED);
         booking.setStart(LocalDateTime.now().minusDays(2));
         booking.setEnd(LocalDateTime.now().minusDays(1));
         booking.setItem(item);
+        booking.setBooker(user);
 
         booking2 = new Booking();
         booking2.setId(3L);
@@ -104,6 +123,7 @@ public class TestEnvironment {
         booking2.setStart(LocalDateTime.now().plusDays(1));
         booking2.setEnd(LocalDateTime.now().plusDays(2));
         booking2.setItem(item);
+        booking2.setBooker(user);
 
         bookingRejected = new Booking();
         bookingRejected.setId(2L);
