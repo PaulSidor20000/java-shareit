@@ -1,10 +1,12 @@
 package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -12,15 +14,22 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.practicum.shareit.TestEnvironment;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = UserController.class)
+//@WebMvcTest(controllers = UserController.class)
+@ExtendWith(MockitoExtension.class)
+@AutoConfigureMockMvc
+@SpringBootTest
 class UserControllerIT extends TestEnvironment {
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -28,9 +37,22 @@ class UserControllerIT extends TestEnvironment {
     @MockBean
     private UserService mockUserService;
 
-    @SneakyThrows
     @Test
-    void createTest_whenDataValid_thenReturnStatusOk() {
+    void testAddUser() throws Exception {
+        when(mockUserService.create(any())).thenReturn(userDtoOut);
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(userDtoOut))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(userDtoOut.getId()), Long.class))
+                .andExpect(jsonPath("$.name", is(userDtoOut.getName())))
+                .andExpect(jsonPath("$.email", is(userDtoOut.getEmail())));
+    }
+
+    @Test
+    void createTest_whenDataValid_thenReturnStatusOk() throws Exception {
         when(mockUserService.create(userDtoIn)).thenReturn(userDtoOut);
 
         String jsonResult = mockMvc.perform(post("/users")
@@ -40,6 +62,9 @@ class UserControllerIT extends TestEnvironment {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(userDtoOut.getId()), Long.class))
+                .andExpect(jsonPath("$.name", is(userDtoOut.getName())))
+                .andExpect(jsonPath("$.email", is(userDtoOut.getEmail())))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -48,9 +73,8 @@ class UserControllerIT extends TestEnvironment {
         verify(mockUserService).create(userDtoIn);
     }
 
-    @SneakyThrows
     @Test
-    void createTest_whenNameNotValid_thenReturnStatusBadRequest() {
+    void createTest_whenNameNotValid_thenReturnStatusBadRequest() throws Exception {
         userDtoIn.setName("");
 
         mockMvc.perform(post("/users")
@@ -64,9 +88,8 @@ class UserControllerIT extends TestEnvironment {
         verify(mockUserService, never()).create(userDtoIn);
     }
 
-    @SneakyThrows
     @Test
-    void createTest_whenEmailNotValid_thenReturnStatusBadRequest() {
+    void createTest_whenEmailNotValid_thenReturnStatusBadRequest() throws Exception {
         userDtoIn.setEmail("");
 
         mockMvc.perform(post("/users")
@@ -80,10 +103,11 @@ class UserControllerIT extends TestEnvironment {
         verify(mockUserService, never()).create(userDtoIn);
     }
 
-    @SneakyThrows
     @Test
-    void readTest_whenInvoke_thenReturnStatusOk() {
+    void readTest_whenInvoke_thenReturnStatusOk() throws Exception {
         long userId = 1L;
+        when(mockUserService.read(userId)).thenReturn(userDtoOut);
+
         mockMvc.perform(get("/users/{id}", userId))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -91,9 +115,8 @@ class UserControllerIT extends TestEnvironment {
         verify(mockUserService).read(userId);
     }
 
-    @SneakyThrows
     @Test
-    void updateTest_whenInvoke_thenReturnStatusOk() {
+    void updateTest_whenInvoke_thenReturnStatusOk() throws Exception {
         long userId = 1L;
         when(mockUserService.update(userId, userDtoPatchName)).thenReturn(userDtoOut);
 
@@ -112,15 +135,26 @@ class UserControllerIT extends TestEnvironment {
         verify(mockUserService).update(userId, userDtoPatchName);
     }
 
-    @SneakyThrows
     @Test
-    void deleteTest_whenInvoke_thenReturnStatusOk() {
+    void deleteTest_whenInvoke_thenReturnStatusOk() throws Exception {
         long userId = 1L;
+
         mockMvc.perform(MockMvcRequestBuilders.delete("/users/{id}", userId))
                 .andDo(print())
                 .andExpect(status().isOk());
 
         verify(mockUserService).delete(userId);
+    }
+
+    @Test
+    void findAllTest_whenInvoke_thenReturnStatusOk() throws Exception {
+        when(mockUserService.findAll()).thenReturn(List.of(userDtoOut));
+
+        mockMvc.perform(get("/users"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verify(mockUserService).findAll();
     }
 
 }

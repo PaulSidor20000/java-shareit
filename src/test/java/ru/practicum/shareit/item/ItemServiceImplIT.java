@@ -68,7 +68,7 @@ class ItemServiceImplIT {
 
         CommentDto commentDtoActual = itemService.createComment(itemId, bookerId, commentDto);
 
-        assertEquals(1, commentDtoActual.getId());
+        assertEquals(2, commentDtoActual.getId());
         assertTrue(commentDtoActual.getCreated().isBefore(LocalDateTime.now()));
         assertEquals("First Comment", commentDtoActual.getText());
         assertEquals("user3", commentDtoActual.getAuthorName());

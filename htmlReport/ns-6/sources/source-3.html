@@ -1,0 +1,185 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ItemRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ru.practicum.shareit.item</a>
+</div>
+
+<h1>Coverage Summary for Class: ItemRepository (ru.practicum.shareit.item)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">ItemRepository$MockitoMock$zXG2V3Kg</td>
+  </tr>
+  <tr>
+    <td class="name">ItemRepository$MockitoMock$zXG2V3Kg$auxiliary$E1xugT7U</td>
+  </tr>
+  <tr>
+    <td class="name">ItemRepository$MockitoMock$zXG2V3Kg$auxiliary$eUeDMVhL</td>
+  </tr>
+  <tr>
+    <td class="name">ItemRepository$MockitoMock$zXG2V3Kg$auxiliary$SasXg3C9</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ru.practicum.shareit.item;
+&nbsp;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;import org.springframework.stereotype.Repository;
+&nbsp;import ru.practicum.shareit.booking.dto.BookingShort;
+&nbsp;import ru.practicum.shareit.item.model.Item;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;@Repository
+&nbsp;public interface ItemRepository extends JpaRepository&lt;Item, Long&gt; {
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            &quot;select i&quot; +
+&nbsp;                    &quot; from Item i&quot; +
+&nbsp;                    &quot; left join fetch i.comments&quot; +
+&nbsp;                    &quot; where i.id = :id&quot;
+&nbsp;    )
+&nbsp;    Optional&lt;Item&gt; findItemByIdAndFetchComments(@Param(&quot;id&quot;) Long itemId);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            &quot;select i&quot; +
+&nbsp;                    &quot; from Item i&quot; +
+&nbsp;                    &quot; left join fetch i.comments&quot; +
+&nbsp;                    &quot; where i.available = true&quot; +
+&nbsp;                    &quot; and (lower(i.name) like lower(concat(&#39;%&#39;, :query, &#39;%&#39;))&quot; +
+&nbsp;                    &quot; or lower(i.description) like lower(concat(&#39;%&#39;, :query, &#39;%&#39;)))&quot; +
+&nbsp;                    &quot; order by i.id&quot;
+&nbsp;    )
+&nbsp;    List&lt;Item&gt; searchByNameAndDescription(@Param(&quot;query&quot;) String query, PageRequest page);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            &quot;select i&quot; +
+&nbsp;                    &quot; from Item i&quot; +
+&nbsp;                    &quot; join i.owner o&quot; +
+&nbsp;                    &quot; left join fetch i.comments&quot; +
+&nbsp;                    &quot; where o.id = :id&quot;
+&nbsp;    )
+&nbsp;    List&lt;Item&gt; findItemsByOwnerIdAndFetchAllEntities(@Param(&quot;id&quot;) Long ownerId, PageRequest page);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            value = &quot;select b.id as id, b.booker_id as bookerId, b.item_id as itemId&quot; +
+&nbsp;                    &quot; from bookings as b &quot; +
+&nbsp;                    &quot; left join items i on i.id = b.item_id&quot; +
+&nbsp;                    &quot; where b.item_id in (:itemIds)&quot; +
+&nbsp;                    &quot; and CURRENT_TIMESTAMP &lt; b.start_time&quot; +
+&nbsp;                    &quot; and b.status = &#39;APPROVED&#39;&quot; +
+&nbsp;                    &quot; order by b.start_time&quot; +
+&nbsp;                    &quot; limit 1&quot;,
+&nbsp;            nativeQuery = true
+&nbsp;    )
+&nbsp;    List&lt;BookingShort&gt; findNextBookings(@Param(&quot;itemIds&quot;) Collection&lt;Long&gt; itemIds);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            value = &quot;select b.id as id, b.booker_id as bookerId, b.item_id as itemId&quot; +
+&nbsp;                    &quot; from bookings as b &quot; +
+&nbsp;                    &quot; left join items i on i.id = b.item_id&quot; +
+&nbsp;                    &quot; where b.item_id in (:itemIds)&quot; +
+&nbsp;                    &quot; and CURRENT_TIMESTAMP &gt; b.start_time&quot; +
+&nbsp;                    &quot; and b.status = &#39;APPROVED&#39;&quot; +
+&nbsp;                    &quot; order by b.start_time desc&quot; +
+&nbsp;                    &quot; limit 1&quot;,
+&nbsp;            nativeQuery = true
+&nbsp;    )
+&nbsp;    List&lt;BookingShort&gt; findLastBookings(@Param(&quot;itemIds&quot;) Collection&lt;Long&gt; itemIds);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            value = &quot;select b.id as id, b.booker_id as bookerId, b.item_id as itemId&quot; +
+&nbsp;                    &quot; from bookings as b&quot; +
+&nbsp;                    &quot; left join items i on i.id = b.item_id&quot; +
+&nbsp;                    &quot; where b.item_id in (:itemId)&quot; +
+&nbsp;                    &quot; and CURRENT_TIMESTAMP &lt; b.start_time&quot; +
+&nbsp;                    &quot; and b.status = &#39;APPROVED&#39;&quot; +
+&nbsp;                    &quot; order by b.start_time&quot; +
+&nbsp;                    &quot; limit 1&quot;,
+&nbsp;            nativeQuery = true
+&nbsp;    )
+&nbsp;    Optional&lt;BookingShort&gt; findNextBookingsOfItem(@Param(&quot;itemId&quot;) Long itemId);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            value = &quot;select b.id as id, b.booker_id as bookerId, b.item_id as itemId&quot; +
+&nbsp;                    &quot; from bookings as b&quot; +
+&nbsp;                    &quot; left join items i on i.id = b.item_id&quot; +
+&nbsp;                    &quot; where b.item_id in (:itemId)&quot; +
+&nbsp;                    &quot; and CURRENT_TIMESTAMP &gt; b.start_time&quot; +
+&nbsp;                    &quot; and b.status = &#39;APPROVED&#39;&quot; +
+&nbsp;                    &quot; order by b.start_time desc&quot; +
+&nbsp;                    &quot; limit 1&quot;,
+&nbsp;            nativeQuery = true
+&nbsp;    )
+&nbsp;    Optional&lt;BookingShort&gt; findLastBookingsOfItem(@Param(&quot;itemId&quot;) Long itemId);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            &quot;select i&quot; +
+&nbsp;                    &quot; from Item i&quot; +
+&nbsp;                    &quot; left join fetch i.comments&quot; +
+&nbsp;                    &quot; where i.requestId in :ids&quot;
+&nbsp;    )
+&nbsp;    List&lt;Item&gt; findAllItemsByRequestIds(@Param(&quot;ids&quot;) Set&lt;Long&gt; requestIds);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2023-05-01 19:41</div>
+</div>
+</body>
+</html>

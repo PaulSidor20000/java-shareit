@@ -1,0 +1,100 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > ItemRequestRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ru.practicum.shareit.request</a>
+</div>
+
+<h1>Coverage Summary for Class: ItemRequestRepository (ru.practicum.shareit.request)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">ItemRequestRepository$MockitoMock$pt5uYEcO</td>
+  </tr>
+  <tr>
+    <td class="name">ItemRequestRepository$MockitoMock$pt5uYEcO$auxiliary$fwITDubJ</td>
+  </tr>
+  <tr>
+    <td class="name">ItemRequestRepository$MockitoMock$pt5uYEcO$auxiliary$lsyIGSVE</td>
+  </tr>
+  <tr>
+    <td class="name">ItemRequestRepository$MockitoMock$pt5uYEcO$auxiliary$wpXIpC8M</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ru.practicum.shareit.request;
+&nbsp;
+&nbsp;import org.springframework.data.domain.PageRequest;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;
+&nbsp;import java.util.Collection;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;public interface ItemRequestRepository extends JpaRepository&lt;ItemRequest, Long&gt; {
+&nbsp;
+&nbsp;    List&lt;ItemRequest&gt; findByUserId(Long userId);
+&nbsp;
+&nbsp;    @Query(
+&nbsp;            &quot;select ir&quot; +
+&nbsp;                    &quot; from ItemRequest ir&quot; +
+&nbsp;                    &quot; where ir.user.id not in :id&quot;
+&nbsp;    )
+&nbsp;    Collection&lt;ItemRequest&gt; findAllExceptUserId(@Param(&quot;id&quot;) Long userId, PageRequest page);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2023-05-01 19:41</div>
+</div>
+</body>
+</html>

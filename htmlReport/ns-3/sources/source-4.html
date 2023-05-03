@@ -1,0 +1,106 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > BookingMapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ru.practicum.shareit.booking.dto</a>
+</div>
+
+<h1>Coverage Summary for Class: BookingMapper (ru.practicum.shareit.booking.dto)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">BookingMapper$MockitoMock$YRGZ4dZw</td>
+  </tr>
+  <tr>
+    <td class="name">BookingMapper$MockitoMock$YRGZ4dZw$auxiliary$Ewr6nM6F</td>
+  </tr>
+  <tr>
+    <td class="name">BookingMapper$MockitoMock$YRGZ4dZw$auxiliary$jRQG4O8Y</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ru.practicum.shareit.booking.dto;
+&nbsp;
+&nbsp;import org.mapstruct.Mapper;
+&nbsp;import org.mapstruct.Mapping;
+&nbsp;import ru.practicum.shareit.booking.model.BookStatus;
+&nbsp;import ru.practicum.shareit.booking.model.Booking;
+&nbsp;import ru.practicum.shareit.item.dto.CommentMapper;
+&nbsp;import ru.practicum.shareit.item.model.Item;
+&nbsp;import ru.practicum.shareit.user.dto.UserMapper;
+&nbsp;import ru.practicum.shareit.user.model.User;
+&nbsp;
+&nbsp;@Mapper(componentModel = &quot;spring&quot;,
+&nbsp;        imports = BookStatus.class,
+&nbsp;        uses = {
+&nbsp;                UserMapper.class,
+&nbsp;                CommentMapper.class
+&nbsp;        })
+&nbsp;public interface BookingMapper {
+&nbsp;
+&nbsp;
+&nbsp;    Booking map(BookingDto bookingDto);
+&nbsp;
+&nbsp;    BookingDto map(Booking booking);
+&nbsp;
+&nbsp;    @Mapping(target = &quot;id&quot;, ignore = true)
+&nbsp;    @Mapping(target = &quot;status&quot;, expression = &quot;java(BookStatus.WAITING)&quot;)
+&nbsp;    @Mapping(target = &quot;booker&quot;, source = &quot;booker&quot;)
+&nbsp;    @Mapping(target = &quot;item&quot;, source = &quot;item&quot;)
+&nbsp;    Booking merge(User booker, Item item, BookingDto bookingDto);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2023-05-01 19:41</div>
+</div>
+</body>
+</html>

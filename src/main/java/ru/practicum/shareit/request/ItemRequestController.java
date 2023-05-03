@@ -21,6 +21,12 @@ public class ItemRequestController {
         return itemRequestService.create(userId, itemRequestDto);
     }
 
+    @GetMapping("/{id}")
+    public ItemRequestDto read(@RequestHeader(USER_ID) Long userId,
+                               @PathVariable(value = "id") Long requestId) {
+        return itemRequestService.read(requestId, userId);
+    }
+
     @GetMapping
     public Collection<ItemRequestDto> findAllRequestsOfUser(@RequestHeader(USER_ID) Long userId) {
         return itemRequestService.findAllRequestsOfUser(userId);
@@ -32,12 +38,6 @@ public class ItemRequestController {
                                                               @RequestParam(required = false, defaultValue = "20") Integer size
     ) {
         return itemRequestService.findAllRequestsOfOthers(userId, from, size);
-    }
-
-    @GetMapping("/{id}")
-    public ItemRequestDto read(@RequestHeader(USER_ID) Long userId,
-                               @PathVariable(value = "id") Long requestId) {
-        return itemRequestService.read(requestId, userId);
     }
 
 

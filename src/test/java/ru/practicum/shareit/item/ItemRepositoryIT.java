@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingShort;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
@@ -25,6 +27,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ItemRepositoryIT {
     private final ItemRepository itemRepository;
+    private final CommentRepository commentRepository;
+    Comment comment;
+
+    @BeforeEach
+    void setUp() {
+        comment = commentRepository.findById(1L).get();
+    }
 
     @Test
     void findItemByIdAndFetchComments() {
@@ -36,7 +45,7 @@ class ItemRepositoryIT {
         assertEquals("Item1", itemActual.get().getName());
         assertEquals("Item1 Description", itemActual.get().getDescription());
         assertTrue(itemActual.get().isAvailable());
-        assertEquals(Set.of(), itemActual.get().getComments());
+        assertEquals(Set.of(comment), itemActual.get().getComments());
     }
 
     @Test

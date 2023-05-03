@@ -61,13 +61,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public Collection<ItemRequestDto> findAllRequestsOfOthers(Long userId, Integer from, Integer size) {
-        if (from < 0 || size <= 0) {
-            throw new RequestNotValidException(FAILED_REQUEST);
-        }
+        PageRequest page = getPage(from, size);
         if (!userIsExist(userId)) {
             throw new EntityNotFoundException(String.format(FAILED_USER_ID, userId));
         }
-        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
 
         Map<Long, ItemRequest> requests = itemRequestRepository.findAllExceptUserId(userId, page).stream()
                 .collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
@@ -83,6 +80,13 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .sorted(Comparator.comparing(ItemRequest::getCreated).reversed())
                 .map(itemRequest -> itemRequestMapper.merge(items.getOrDefault(itemRequest.getId(), List.of()), itemRequest))
                 .collect(Collectors.toList());
+    }
+
+    private PageRequest getPage(Integer from, Integer size) {
+        if (from < 0 || size <= 0) {
+            throw new RequestNotValidException(FAILED_REQUEST);
+        }
+        return PageRequest.of(from > 0 ? from / size : 0, size);
     }
 
     private boolean userIsExist(Long userId) {

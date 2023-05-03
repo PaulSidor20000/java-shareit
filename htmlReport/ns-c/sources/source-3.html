@@ -1,0 +1,96 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > UserMapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ru.practicum.shareit.user.dto</a>
+</div>
+
+<h1>Coverage Summary for Class: UserMapper (ru.practicum.shareit.user.dto)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">UserMapper$MockitoMock$jM9zWX48</td>
+  </tr>
+  <tr>
+    <td class="name">UserMapper$MockitoMock$jM9zWX48$auxiliary$mguGnO6J</td>
+  </tr>
+  <tr>
+    <td class="name">UserMapper$MockitoMock$jM9zWX48$auxiliary$RGv1O7Al</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ru.practicum.shareit.user.dto;
+&nbsp;
+&nbsp;import org.mapstruct.Mapper;
+&nbsp;import org.mapstruct.Mapping;
+&nbsp;import org.mapstruct.MappingTarget;
+&nbsp;import ru.practicum.shareit.user.model.User;
+&nbsp;
+&nbsp;@Mapper(componentModel = &quot;spring&quot;)
+&nbsp;public interface UserMapper {
+&nbsp;
+&nbsp;    UserDto map(User user);
+&nbsp;
+&nbsp;    User map(UserDto userDto);
+&nbsp;
+&nbsp;    @Mapping(target = &quot;id&quot;, expression = &quot;java(userId)&quot;)
+&nbsp;    @Mapping(target = &quot;email&quot;, expression = &quot;java(userDto.getEmail() == null ? userFromDB.getEmail() : userDto.getEmail())&quot;)
+&nbsp;    @Mapping(target = &quot;name&quot;, expression = &quot;java(userDto.getName() == null ? userFromDB.getName() : userDto.getName())&quot;)
+&nbsp;    User merge(Long userId, @MappingTarget User userFromDB, UserDto userDto);
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2023-05-01 19:41</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <title>Coverage Report > CommentMapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ru.practicum.shareit.item.dto</a>
+</div>
+
+<h1>Coverage Summary for Class: CommentMapper (ru.practicum.shareit.item.dto)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">CommentMapper$MockitoMock$dBq2lrSW</td>
+  </tr>
+  <tr>
+    <td class="name">CommentMapper$MockitoMock$dBq2lrSW$auxiliary$6lK3CU50</td>
+  </tr>
+  <tr>
+    <td class="name">CommentMapper$MockitoMock$dBq2lrSW$auxiliary$Fsq7HFEl</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ru.practicum.shareit.item.dto;
+&nbsp;
+&nbsp;import org.mapstruct.Mapper;
+&nbsp;import org.mapstruct.Mapping;
+&nbsp;import ru.practicum.shareit.item.model.Comment;
+&nbsp;import ru.practicum.shareit.item.model.Item;
+&nbsp;import ru.practicum.shareit.user.model.User;
+&nbsp;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.Collection;
+&nbsp;
+&nbsp;@Mapper(componentModel = &quot;spring&quot;, imports = LocalDateTime.class)
+&nbsp;public interface CommentMapper {
+&nbsp;
+&nbsp;    Comment map(CommentDto commentDto);
+&nbsp;
+&nbsp;    CommentDto map(Comment comment);
+&nbsp;
+&nbsp;    Collection&lt;CommentDto&gt; map(Collection&lt;Comment&gt; comments);
+&nbsp;
+&nbsp;    @Mapping(target = &quot;id&quot;, ignore = true)
+&nbsp;    @Mapping(target = &quot;authorName&quot;, source = &quot;booker.name&quot;)
+&nbsp;    @Mapping(target = &quot;booker&quot;, source = &quot;booker&quot;)
+&nbsp;    @Mapping(target = &quot;created&quot;, expression = &quot;java(LocalDateTime.now())&quot;)
+&nbsp;    Comment merge(User booker, Item item, CommentDto commentDto);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2023-05-01 19:41</div>
+</div>
+</body>
+</html>

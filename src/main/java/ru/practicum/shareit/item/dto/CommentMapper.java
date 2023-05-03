@@ -8,6 +8,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
 @Mapper(componentModel = "spring", imports = LocalDateTime.class)
 public interface CommentMapper {
@@ -16,7 +17,7 @@ public interface CommentMapper {
 
     CommentDto map(Comment comment);
 
-    Collection<CommentDto> map(Collection<Comment> comments);
+    List<CommentDto> map(Collection<Comment> comments);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "authorName", source = "booker.name")

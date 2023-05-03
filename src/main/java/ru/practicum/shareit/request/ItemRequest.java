@@ -13,6 +13,7 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
+@ToString
 @Table(name = "item_requests")
 public class ItemRequest {
 
@@ -37,11 +38,12 @@ public class ItemRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ItemRequest that = (ItemRequest) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(id, that.id) && Objects.equals(description, that.description) && Objects.equals(created, that.created);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, description, created);
     }
+
 }

@@ -10,6 +10,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookStatus;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.dto.UserDto;
 
@@ -32,12 +33,19 @@ class BookingServiceImplIT {
 
     @BeforeEach
     void setUp() {
+        CommentDto commentDto = new CommentDto();
+        commentDto.setId(1L);
+        commentDto.setText("Comment");
+        commentDto.setAuthorName("user2");
+        commentDto.setCreated(LocalDateTime.parse("2023-09-10T12:00:00", formatter));
+
+
         ItemDto itemDto = new ItemDto();
         itemDto.setId(1L);
         itemDto.setName("Item1");
         itemDto.setDescription("Item1 Description");
         itemDto.setAvailable(true);
-        itemDto.setComments(Set.of());
+        itemDto.setComments(Set.of(commentDto));
 
         UserDto userDto2 = new UserDto();
         userDto2.setId(2L);

@@ -10,22 +10,34 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Set;
 
 public class TestEnvironment {
     protected UserDto userDtoIn, userDtoOut, userDtoPatchName, userDtoPatchEmail;
-    protected User user, owner, userWithBookings;
+    protected User user, owner, owner3, userWithBookings;
     protected ItemDto itemDtoIn, itemDtoOut, itemDtoPatch;
-    protected Item item, item2;
+    protected Item item, item2, item4;
     protected BookingShort nextBooking, lastBooking;
     protected Booking booking, bookingRejected, booking2;
     protected BookingDto bookingDtoIn, bookingDtoOut, bookingDtoInFut;
     protected CommentDto commentDto;
     protected Comment comment;
+    protected ItemRequestDto itemRequestDtoIn, itemRequestDtoOut;
+    protected ItemRequest itemRequest;
+    protected DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    protected LocalDateTime startInFuture = LocalDateTime.parse("2023-08-10T12:00:00", formatter);
+    protected LocalDateTime endInFuture = LocalDateTime.parse("2023-09-10T12:00:00", formatter);
+    protected LocalDateTime startInPast = LocalDateTime.parse("2023-03-10T12:00:00", formatter);
+    protected LocalDateTime endInPast = LocalDateTime.parse("2023-04-10T12:00:00", formatter);
+    protected LocalDateTime now = LocalDateTime.now();
 
     @BeforeEach
     void setUp() {
@@ -59,6 +71,11 @@ public class TestEnvironment {
         owner.setName("Owner");
         owner.setEmail("owner@mail.ru");
 
+        owner3 = new User();
+        owner3.setId(3L);
+        owner3.setName("User3");
+        owner3.setEmail("user3@mail.ru");
+
         itemDtoIn = new ItemDto();
         itemDtoIn.setName("Item1");
         itemDtoIn.setDescription("Item1 Description");
@@ -86,6 +103,13 @@ public class TestEnvironment {
         item2.setAvailable(true);
         item2.setOwner(owner);
 
+        item4 = new Item();
+        item4.setId(4L);
+        item4.setName("Item4");
+        item4.setDescription("Item4 Description search");
+        item4.setAvailable(true);
+        item4.setOwner(owner3);
+
         owner.setItems(Set.of(item, item2));
 
         nextBooking = new BookingShortImpl(1L, 1L, 1L);
@@ -110,7 +134,6 @@ public class TestEnvironment {
         bookingDtoOut.setItem(itemDtoOut);
 
         booking = new Booking();
-     //   booking.setId(1L);
         booking.setStatus(BookStatus.APPROVED);
         booking.setStart(LocalDateTime.now().minusDays(2));
         booking.setEnd(LocalDateTime.now().minusDays(1));
@@ -142,6 +165,26 @@ public class TestEnvironment {
         commentDto.setText("First Comment");
 
         comment = new Comment();
+
+        itemRequest = new ItemRequest();
+        itemRequest.setId(1L);
+        itemRequest.setDescription("Item description");
+        itemRequest.setCreated(startInFuture);
+        itemRequest.setUser(user);
+
+        itemRequestDtoIn = new ItemRequestDto();
+        itemRequestDtoIn.setDescription("Item description");
+        itemRequestDtoIn.setCreated(startInFuture);
+
+        itemRequestDtoOut = new ItemRequestDto();
+        itemRequestDtoOut.setId(1L);
+        itemRequestDtoOut.setDescription("Item description");
+        itemRequestDtoOut.setCreated(startInFuture);
+        itemRequestDtoOut.setItems(List.of(itemDtoOut));
+
+        itemDtoOut.setRequestId(1L);
+        item.setRequestId(1L);
+
 
 
     }
