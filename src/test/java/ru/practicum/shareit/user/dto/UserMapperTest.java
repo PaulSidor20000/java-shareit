@@ -4,40 +4,36 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
+@AutoConfigureTestDatabase
+@Sql(value = "/testdata.sql")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class UserMapperTest {
     private final UserMapper userMapper;
-    User user, userFromDB;
+    private final UserRepository userRepository;
+    User user;
     UserDto userDtoIn, userDtoOut;
 
     @BeforeEach
     void setUp() {
-        user = new User();
-        user.setId(1L);
-        user.setName("John");
-        user.setEmail("john@mail.com");
-
-        userFromDB = new User();
-        userFromDB.setId(1L);
-        userFromDB.setName("Mark");
-        userFromDB.setEmail("john@mail.com");
-
+        user = userRepository.findById(1L).get();
 
         userDtoOut = new UserDto();
         userDtoOut.setId(1L);
-        userDtoOut.setName("John");
-        userDtoOut.setEmail("john@mail.com");
+        userDtoOut.setName("user1");
+        userDtoOut.setEmail("user1@mail.ru");
 
         userDtoIn = new UserDto();
-        userDtoIn.setName("John");
-
+        userDtoIn.setName("user1");
     }
 
     @Test
@@ -71,15 +67,15 @@ class UserMapperTest {
     @Test
     void mergeTest_mergeUserDtoToUserFromDBAndReturnUserFromDB() {
         long userId = 1L;
-        User actual = userMapper.merge(userId, userFromDB, userDtoIn);
+        User actual = userMapper.merge(userId, user, userDtoIn);
 
         assertEquals(user, actual);
     }
 
     @Test
     void mergeTest_whenUserDtoAndUserIdIsNullReturnUserFromDB() {
-        User actual = userMapper.merge(null, userFromDB, null);
+        User actual = userMapper.merge(null, user, null);
 
-        assertEquals(userFromDB, actual);
+        assertEquals(user, actual);
     }
 }

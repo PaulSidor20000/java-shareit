@@ -1,12 +1,14 @@
 package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import javax.validation.Valid;
 import java.util.Collection;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/requests")

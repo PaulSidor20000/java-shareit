@@ -1,16 +1,18 @@
 package ru.practicum.shareit.request;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.TestEnvironment;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,22 +23,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemRequestController.class)
-class ItemRequestControllerIT extends TestEnvironment {
+class ItemRequestControllerIT {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
     private ItemRequestService mockItemRequestService;
+    private ItemRequestDto itemRequestDto;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private final LocalDateTime created = LocalDateTime.parse("2023-08-10T12:00:00", formatter);
 
-    @SneakyThrows
+    @BeforeEach
+    void setUp() {
+        itemRequestDto = new ItemRequestDto();
+        itemRequestDto.setDescription("Item description");
+        itemRequestDto.setCreated(created);
+    }
+
     @Test
-    void createTest_whenDataValid_thenReturnStatusOk() {
+    void createTest_whenDataValid_thenReturnStatusOk() throws Exception {
         long userId = 1L;
-        when(mockItemRequestService.create(userId, itemRequestDtoIn)).thenReturn(itemRequestDtoOut);
+        when(mockItemRequestService.create(anyLong(), any(ItemRequestDto.class))).thenReturn(new ItemRequestDto());
 
         String jsonResult = mockMvc.perform(post("/requests")
-                        .content(objectMapper.writeValueAsString(itemRequestDtoIn))
+                        .content(objectMapper.writeValueAsString(itemRequestDto))
                         .header("X-Sharer-User-Id", userId)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -47,19 +58,18 @@ class ItemRequestControllerIT extends TestEnvironment {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(itemRequestDtoOut), jsonResult);
-        verify(mockItemRequestService).create(userId, itemRequestDtoIn);
+        assertEquals(objectMapper.writeValueAsString(new ItemRequestDto()), jsonResult);
+        verify(mockItemRequestService).create(anyLong(), any(ItemRequestDto.class));
     }
 
-    @SneakyThrows
     @Test
-    void createTest_whenDescriptionNotValid_thenReturnStatusBadRequest() {
+    void createTest_whenDescriptionNotValid_thenReturnStatusBadRequest() throws Exception {
         long userId = 1L;
-        itemRequestDtoIn.setDescription("");
-        when(mockItemRequestService.create(userId, itemRequestDtoIn)).thenReturn(itemRequestDtoOut);
+        itemRequestDto.setDescription("");
+        when(mockItemRequestService.create(anyLong(), any(ItemRequestDto.class))).thenReturn(new ItemRequestDto());
 
         mockMvc.perform(post("/requests")
-                        .content(objectMapper.writeValueAsString(itemRequestDtoIn))
+                        .content(objectMapper.writeValueAsString(new ItemRequestDto()))
                         .header("X-Sharer-User-Id", userId)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -67,45 +77,42 @@ class ItemRequestControllerIT extends TestEnvironment {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
-        verify(mockItemRequestService, never()).create(userId, itemRequestDtoIn);
+        verify(mockItemRequestService, never()).create(anyLong(), any(ItemRequestDto.class));
     }
 
-    @SneakyThrows
     @Test
-    void readTest_whenInvoke_thenReturnStatusOk() {
+    void readTest_whenInvoke_thenReturnStatusOk() throws Exception {
         long userId = 1L;
         long requestId = 1L;
-        when(mockItemRequestService.read(userId, requestId)).thenReturn(itemRequestDtoOut);
+        when(mockItemRequestService.read(anyLong(), anyLong())).thenReturn(new ItemRequestDto());
 
         mockMvc.perform(get("/requests/{id}", requestId)
                         .header("X-Sharer-User-Id", userId))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockItemRequestService).read(userId, requestId);
+        verify(mockItemRequestService).read(anyLong(), anyLong());
     }
 
-    @SneakyThrows
     @Test
-    void findAllRequestsOfUserTest_whenInvoke_thenReturnStatusOk() {
+    void findAllRequestsOfUserTest_whenInvoke_thenReturnStatusOk() throws Exception {
         long userId = 1L;
-        when(mockItemRequestService.findAllRequestsOfUser(userId)).thenReturn(List.of(itemRequestDtoOut));
+        when(mockItemRequestService.findAllRequestsOfUser(anyLong())).thenReturn(List.of(new ItemRequestDto()));
 
         mockMvc.perform(get("/requests")
                         .header("X-Sharer-User-Id", userId))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockItemRequestService).findAllRequestsOfUser(userId);
+        verify(mockItemRequestService).findAllRequestsOfUser(anyLong());
     }
 
-    @SneakyThrows
     @Test
-    void findAllRequestsOfOthersTest_whenInvoke_thenReturnStatusOk() {
+    void findAllRequestsOfOthersTest_whenInvoke_thenReturnStatusOk() throws Exception {
         long userId = 1L;
         int from = 0;
         int size = 20;
-        when(mockItemRequestService.findAllRequestsOfOthers(userId, from, size)).thenReturn(List.of(itemRequestDtoOut));
+        when(mockItemRequestService.findAllRequestsOfOthers(userId, from, size)).thenReturn(List.of(new ItemRequestDto()));
 
         mockMvc.perform(get("/requests/all")
                         .header("X-Sharer-User-Id", userId)

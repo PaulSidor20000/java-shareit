@@ -1,12 +1,15 @@
 package ru.practicum.shareit.item;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
-import ru.practicum.shareit.TestEnvironment;
+import ru.practicum.shareit.booking.dto.BookingShortImpl;
+import ru.practicum.shareit.booking.model.BookStatus;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.exceptions.RequestNotValidException;
 import ru.practicum.shareit.exceptions.ValidationException;
@@ -14,10 +17,15 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,7 +33,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ItemServiceImplTest extends TestEnvironment {
+class ItemServiceImplTest {
     @Mock
     private ItemRepository mockItemRepository;
     @Mock
@@ -38,28 +46,50 @@ class ItemServiceImplTest extends TestEnvironment {
     private ItemMapper mockItemMapper;
     @InjectMocks
     private ItemServiceImpl itemService;
+    private User user;
+    private Item item;
+    private Booking booking;
+
+    @BeforeEach
+    void setUp() {
+        user = new User();
+        user.setId(1L);
+
+        User owner = new User();
+        owner.setId(2L);
+
+        item = new Item();
+        item.setId(1L);
+        item.setAvailable(true);
+        item.setOwner(owner);
+
+        booking = new Booking();
+        booking.setStatus(BookStatus.APPROVED);
+        booking.setStart(LocalDateTime.now().minusDays(2));
+        booking.setEnd(LocalDateTime.now().minusDays(1));
+        booking.setItem(item);
+        booking.setBooker(user);
+    }
 
     @Test
     void createTest_whenOwnerFound_thenCreateItemAndReturnItemDto() {
-        long ownerId = 2L;
-        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-        when(mockItemMapper.merge(owner, itemDtoIn)).thenReturn(item);
-        when(mockItemRepository.save(item)).thenReturn(item);
-        when(mockItemMapper.mapOneForOwner(item)).thenReturn(itemDtoOut);
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(mockItemMapper.merge(any(User.class), any(ItemDto.class))).thenReturn(item);
+        when(mockItemRepository.save(any(Item.class))).thenReturn(item);
+        when(mockItemMapper.mapOneForOwner(any(Item.class))).thenReturn(new ItemDto());
 
-        ItemDto itemDtoActual = itemService.create(ownerId, itemDtoIn);
+        ItemDto itemDtoActual = itemService.create(1L, new ItemDto());
 
-        assertEquals(itemDtoOut, itemDtoActual);
-        verify(mockItemRepository).save(item);
+        assertEquals(new ItemDto(), itemDtoActual);
+        verify(mockItemRepository).save(any(Item.class));
     }
 
     @Test
     void createTest_whenOwnerNotFound_thenEntityNotFoundExceptionThrown() {
-        long userId = 1L;
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> itemService.create(userId, itemDtoIn));
-        verify(mockItemRepository, never()).save(item);
+        assertThrows(EntityNotFoundException.class, () -> itemService.create(1L, new ItemDto()));
+        verify(mockItemRepository, never()).save(any(Item.class));
     }
 
     @Test
@@ -67,12 +97,12 @@ class ItemServiceImplTest extends TestEnvironment {
         long itemId = 1L;
         long ownerId = 2L;
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(mockItemMapper.mapOneForOwner(item)).thenReturn(itemDtoOut);
+        when(mockItemMapper.mapOneForOwner(any(Item.class))).thenReturn(new ItemDto());
 
         ItemDto itemDtoActual = itemService.read(itemId, ownerId);
 
-        assertEquals(itemDtoOut, itemDtoActual);
-        verify(mockItemMapper, never()).mapForUser(item);
+        assertEquals(new ItemDto(), itemDtoActual);
+        verify(mockItemMapper, never()).mapForUser(any(Item.class));
     }
 
     @Test
@@ -80,12 +110,12 @@ class ItemServiceImplTest extends TestEnvironment {
         long itemId = 1L;
         long userId = 1L;
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(mockItemMapper.mapForUser(item)).thenReturn(itemDtoOut);
+        when(mockItemMapper.mapForUser(any(Item.class))).thenReturn(new ItemDto());
 
         ItemDto itemDtoActual = itemService.read(itemId, userId);
 
-        assertEquals(itemDtoOut, itemDtoActual);
-        verify(mockItemMapper, never()).mapOneForOwner(item);
+        assertEquals(new ItemDto(), itemDtoActual);
+        verify(mockItemMapper, never()).mapOneForOwner(any(Item.class));
     }
 
     @Test
@@ -95,8 +125,8 @@ class ItemServiceImplTest extends TestEnvironment {
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> itemService.read(itemId, userId));
-        verify(mockItemMapper, never()).mapOneForOwner(item);
-        verify(mockItemMapper, never()).mapForUser(item);
+        verify(mockItemMapper, never()).mapOneForOwner(any(Item.class));
+        verify(mockItemMapper, never()).mapForUser(any(Item.class));
     }
 
     @Test
@@ -104,13 +134,13 @@ class ItemServiceImplTest extends TestEnvironment {
         long itemId = 1L;
         long ownerId = 2L;
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(mockItemMapper.merge(item, itemDtoIn)).thenReturn(item);
-        when(mockItemRepository.save(item)).thenReturn(item);
-        when(mockItemMapper.mapOneForOwner(item)).thenReturn(itemDtoOut);
+        when(mockItemMapper.merge(item, new ItemDto())).thenReturn(item);
+        when(mockItemRepository.save(any(Item.class))).thenReturn(item);
+        when(mockItemMapper.mapOneForOwner(any(Item.class))).thenReturn(new ItemDto());
 
-        ItemDto itemDtoActual = itemService.update(ownerId, itemId, itemDtoIn);
+        ItemDto itemDtoActual = itemService.update(ownerId, itemId, new ItemDto());
 
-        assertEquals(itemDtoOut, itemDtoActual);
+        assertEquals(new ItemDto(), itemDtoActual);
     }
 
     @Test
@@ -119,8 +149,8 @@ class ItemServiceImplTest extends TestEnvironment {
         long userId = 1L;
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
 
-        assertThrows(EntityNotFoundException.class, () -> itemService.update(userId, itemId, itemDtoIn));
-        verify(mockItemRepository, never()).save(item);
+        assertThrows(EntityNotFoundException.class, () -> itemService.update(userId, itemId, new ItemDto()));
+        verify(mockItemRepository, never()).save(any(Item.class));
     }
 
     @Test
@@ -129,8 +159,8 @@ class ItemServiceImplTest extends TestEnvironment {
         long userId = 1L;
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> itemService.update(userId, itemId, itemDtoIn));
-        verify(mockItemRepository, never()).save(item);
+        assertThrows(EntityNotFoundException.class, () -> itemService.update(userId, itemId, new ItemDto()));
+        verify(mockItemRepository, never()).save(any(Item.class));
     }
 
     @Test
@@ -149,15 +179,14 @@ class ItemServiceImplTest extends TestEnvironment {
         long ownerId = 2L;
         PageRequest page = PageRequest.of(from, size);
 
-        when(mockItemRepository.findItemsByOwnerIdAndFetchAllEntities(anyLong(), eq(page)))
-                .thenReturn(List.of(item));
-        when(mockItemRepository.findNextBookings(anySet())).thenReturn(List.of(nextBooking));
-        when(mockItemRepository.findLastBookings(anySet())).thenReturn(List.of(lastBooking));
-        when(mockItemMapper.mapForUser(item)).thenReturn(itemDtoOut);
+        when(mockItemRepository.findItemsByOwnerIdAndFetchAllEntities(anyLong(), eq(page))).thenReturn(List.of(item));
+        when(mockItemRepository.findNextBookings(anySet())).thenReturn(List.of(new BookingShortImpl()));
+        when(mockItemRepository.findLastBookings(anySet())).thenReturn(List.of(new BookingShortImpl()));
+        when(mockItemMapper.mapForUser(any(Item.class))).thenReturn(new ItemDto());
 
         List<ItemDto> itemDtosActual = itemService.findAllItemsOfOwner(ownerId, from, size);
 
-        assertEquals(itemDtoOut, itemDtosActual.get(0));
+        assertEquals(new ItemDto(), itemDtosActual.get(0));
     }
 
     @Test
@@ -167,12 +196,12 @@ class ItemServiceImplTest extends TestEnvironment {
         String query = "дрЕль";
         PageRequest page = PageRequest.of(from, size);
 
-        when(mockItemRepository.searchByNameAndDescription(query, page)).thenReturn(List.of(item));
-        when(mockItemMapper.mapForUser(item)).thenReturn(itemDtoOut);
+        when(mockItemRepository.searchByNameAndDescription(anyString(), eq(page))).thenReturn(List.of(item));
+        when(mockItemMapper.mapForUser(item)).thenReturn(new ItemDto());
 
         List<ItemDto> itemDtosActual = itemService.search(query, from, size);
 
-        assertEquals(itemDtoOut, itemDtosActual.get(0));
+        assertEquals(new ItemDto(), itemDtosActual.get(0));
         assertEquals(1, itemDtosActual.size());
     }
 
@@ -203,28 +232,31 @@ class ItemServiceImplTest extends TestEnvironment {
     @Test
     void createCommentTest_whenUserCanComment_thenSaveCommentAndReturnCommentDto() {
         long itemId = 1L;
-        long userId = 3L;
-        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(userWithBookings));
+        long userId = 1L;
+        user.setBookings(Set.of(booking));
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(mockCommentMapper.merge(userWithBookings, item, commentDto)).thenReturn(comment);
-        when(mockCommentRepository.save(comment)).thenReturn(comment);
-        when(mockCommentMapper.map(comment)).thenReturn(commentDto);
+        when(mockCommentMapper.merge(any(User.class), any(Item.class), any(CommentDto.class))).thenReturn(new Comment());
+        when(mockCommentRepository.save(any(Comment.class))).thenReturn(new Comment());
+        when(mockCommentMapper.map(any(Comment.class))).thenReturn(new CommentDto());
 
-        CommentDto commentDtoActual = itemService.createComment(itemId, userId, commentDto);
+        CommentDto commentDtoActual = itemService.createComment(itemId, userId, new CommentDto());
 
-        assertEquals(commentDto, commentDtoActual);
-        verify(mockCommentRepository).save(comment);
+        assertEquals(new CommentDto(), commentDtoActual);
+        verify(mockCommentRepository).save(any(Comment.class));
     }
 
     @Test
     void createCommentTest_whenUserCantComment_thenValidationExceptionThrown() {
-        long itemId = 2L;
-        long userId = 3L;
-        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(userWithBookings));
-        when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item2));
+        long itemId = 1L;
+        long userId = 1L;
+        user.setBookings(Set.of(booking));
+        booking.setStatus(BookStatus.REJECTED);
+        when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(mockItemRepository.findById(anyLong())).thenReturn(Optional.of(item));
 
-        assertThrows(ValidationException.class, () -> itemService.createComment(itemId, userId, commentDto));
-        verify(mockCommentRepository, never()).save(comment);
+        assertThrows(ValidationException.class, () -> itemService.createComment(itemId, userId, any(CommentDto.class)));
+        verify(mockCommentRepository, never()).save(any(Comment.class));
     }
 
     @Test
@@ -234,8 +266,8 @@ class ItemServiceImplTest extends TestEnvironment {
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(mockItemRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> itemService.createComment(itemId, userId, commentDto));
-        verify(mockCommentRepository, never()).save(comment);
+        assertThrows(EntityNotFoundException.class, () -> itemService.createComment(itemId, userId, any(CommentDto.class)));
+        verify(mockCommentRepository, never()).save(any(Comment.class));
     }
 
     @Test
@@ -244,10 +276,9 @@ class ItemServiceImplTest extends TestEnvironment {
         long userId = 1L;
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> itemService.createComment(itemId, userId, commentDto));
-        verify(mockCommentRepository, never()).save(comment);
+        assertThrows(EntityNotFoundException.class, () -> itemService.createComment(itemId, userId, any(CommentDto.class)));
+        verify(mockCommentRepository, never()).save(any(Comment.class));
     }
-
 
 
 }

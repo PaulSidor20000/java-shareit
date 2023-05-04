@@ -39,7 +39,6 @@ class BookingServiceImplIT {
         commentDto.setAuthorName("user2");
         commentDto.setCreated(LocalDateTime.parse("2023-09-10T12:00:00", formatter));
 
-
         ItemDto itemDto = new ItemDto();
         itemDto.setId(1L);
         itemDto.setName("Item1");

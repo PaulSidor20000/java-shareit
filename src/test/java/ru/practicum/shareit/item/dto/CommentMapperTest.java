@@ -77,7 +77,6 @@ class CommentMapperTest {
         assertEquals("Comment", actual.getText());
         assertEquals("user2", actual.getAuthorName());
         assertEquals(LocalDateTime.parse("2023-09-10T12:00:00", formatter), actual.getCreated());
-        //  assertEquals(1, actual.getItemId());
     }
 
     @Test
@@ -95,7 +94,6 @@ class CommentMapperTest {
         assertEquals("Comment", actual.get(0).getText());
         assertEquals("user2", actual.get(0).getAuthorName());
         assertEquals(LocalDateTime.parse("2023-09-10T12:00:00", formatter), actual.get(0).getCreated());
-        //  assertEquals(1, actual.get(0).getItemId());
     }
 
     @Test

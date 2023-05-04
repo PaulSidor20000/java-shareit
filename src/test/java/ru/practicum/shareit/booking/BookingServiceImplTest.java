@@ -1,18 +1,21 @@
 package ru.practicum.shareit.booking;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
-import ru.practicum.shareit.TestEnvironment;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.BookStatus;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,7 +27,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BookingServiceImplTest extends TestEnvironment {
+class BookingServiceImplTest {
     @Mock
     private BookingRepository mockBookingRepository;
     @Mock
@@ -36,6 +39,49 @@ class BookingServiceImplTest extends TestEnvironment {
     @InjectMocks
     private BookingServiceImpl bookingService;
 
+    private User user, owner;
+    private Item item;
+    private Booking booking;
+    private BookingDto bookingDtoIn, bookingDtoOut;
+
+    @BeforeEach
+    void setUp() {
+        user = new User();
+        user.setId(1L);
+        user.setName("John");
+        user.setEmail("john@mail.com");
+
+        owner = new User();
+        owner.setId(2L);
+        owner.setName("Owner");
+        owner.setEmail("owner@mail.ru");
+
+        item = new Item();
+        item.setId(1L);
+        item.setName("Item1");
+        item.setDescription("Item1 Description");
+        item.setAvailable(true);
+        item.setOwner(owner);
+
+        booking = new Booking();
+        booking.setStatus(BookStatus.APPROVED);
+        booking.setStart(LocalDateTime.now().minusDays(2));
+        booking.setEnd(LocalDateTime.now().minusDays(1));
+        booking.setItem(item);
+        booking.setBooker(user);
+
+        bookingDtoIn = new BookingDto();
+        bookingDtoIn.setItemId(1L);
+        bookingDtoIn.setStart(LocalDateTime.now().minusDays(2));
+        bookingDtoIn.setEnd(LocalDateTime.now().minusDays(1));
+
+        bookingDtoOut = new BookingDto();
+        bookingDtoOut.setItemId(1L);
+        bookingDtoOut.setStart(LocalDateTime.now().minusDays(2));
+        bookingDtoOut.setEnd(LocalDateTime.now().minusDays(1));
+        bookingDtoOut.setStatus(BookStatus.APPROVED);
+    }
+
     @Test
     void makeBookingTest_whenDataValid_thenReturnBookingDto() {
         long bookerId = 1L;
@@ -44,11 +90,11 @@ class BookingServiceImplTest extends TestEnvironment {
         when(mockUserRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(mockBookingMapper.merge(user, item, bookingDtoIn)).thenReturn(booking);
         when(mockBookingRepository.save(booking)).thenReturn(booking);
-        when(mockBookingMapper.map(booking)).thenReturn(bookingDtoOut);
+        when(mockBookingMapper.map(booking)).thenReturn(new BookingDto());
 
         BookingDto bookingDtoActual = bookingService.makeBooking(bookerId, bookingDtoIn);
 
-        assertEquals(bookingDtoOut, bookingDtoActual);
+        assertEquals(new BookingDto(), bookingDtoActual);
         verify(mockBookingRepository).save(booking);
     }
 

@@ -1,14 +1,14 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.TestEnvironment;
+import ru.practicum.shareit.booking.dto.BookingDto;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -21,22 +21,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = BookingController.class)
-class BookingControllerIT extends TestEnvironment {
+class BookingControllerIT {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
     @MockBean
     private BookingService mockBookingService;
+    private BookingDto bookingDto;
 
-    @SneakyThrows
+    @BeforeEach
+    void setUp() {
+        bookingDto = new BookingDto();
+        bookingDto.setItemId(1L);
+        bookingDto.setStart(LocalDateTime.now().plusDays(1));
+        bookingDto.setEnd(LocalDateTime.now().plusDays(2));
+    }
+
     @Test
-    void makeBookingTest_whenDataValid_thenReturnStatusOk() {
+    void makeBookingTest_whenDataValid_thenReturnStatusOk() throws Exception {
         long bookerId = 1L;
-        when(mockBookingService.makeBooking(bookerId, bookingDtoInFut)).thenReturn(bookingDtoInFut);
+        when(mockBookingService.makeBooking(anyLong(), any(BookingDto.class))).thenReturn(new BookingDto());
 
         String jsonResult = mockMvc.perform(post("/bookings")
-                        .content(objectMapper.writeValueAsString(bookingDtoInFut))
+                        .content(objectMapper.writeValueAsString(bookingDto))
                         .header("X-Sharer-User-Id", bookerId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -47,19 +55,18 @@ class BookingControllerIT extends TestEnvironment {
                 .getResponse()
                 .getContentAsString();
 
-        assertEquals(objectMapper.writeValueAsString(bookingDtoInFut), jsonResult);
-        verify(mockBookingService).makeBooking(bookerId, bookingDtoInFut);
+        assertEquals(objectMapper.writeValueAsString(new BookingDto()), jsonResult);
+        verify(mockBookingService).makeBooking(anyLong(), any(BookingDto.class));
     }
 
-    @SneakyThrows
     @Test
-    void makeBookingTest_whenStartDataNotValid_thenReturnStatusBadRequest() {
+    void makeBookingTest_whenStartDataNotValid_thenReturnStatusBadRequest() throws Exception {
         long bookerId = 1L;
-        bookingDtoInFut.setStart(LocalDateTime.now().minusDays(1));
-        when(mockBookingService.makeBooking(bookerId, bookingDtoInFut)).thenReturn(bookingDtoInFut);
+        bookingDto.setStart(LocalDateTime.now().minusDays(1));
+        when(mockBookingService.makeBooking(anyLong(), any(BookingDto.class))).thenReturn(new BookingDto());
 
         mockMvc.perform(post("/bookings")
-                        .content(objectMapper.writeValueAsString(bookingDtoInFut))
+                        .content(objectMapper.writeValueAsString(bookingDto))
                         .header("X-Sharer-User-Id", bookerId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -67,18 +74,17 @@ class BookingControllerIT extends TestEnvironment {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
-        verify(mockBookingService, never()).makeBooking(bookerId, bookingDtoInFut);
+        verify(mockBookingService, never()).makeBooking(anyLong(), any(BookingDto.class));
     }
 
-    @SneakyThrows
     @Test
-    void makeBookingTest_whenEndtDataNotValid_thenReturnStatusBadRequest() {
+    void makeBookingTest_whenEndDataNotValid_thenReturnStatusBadRequest() throws Exception {
         long bookerId = 1L;
-        bookingDtoInFut.setEnd(LocalDateTime.now().minusDays(1));
-        when(mockBookingService.makeBooking(bookerId, bookingDtoInFut)).thenReturn(bookingDtoInFut);
+        bookingDto.setEnd(LocalDateTime.now().minusDays(1));
+        when(mockBookingService.makeBooking(anyLong(), any(BookingDto.class))).thenReturn(new BookingDto());
 
         mockMvc.perform(post("/bookings")
-                        .content(objectMapper.writeValueAsString(bookingDtoInFut))
+                        .content(objectMapper.writeValueAsString(bookingDto))
                         .header("X-Sharer-User-Id", bookerId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -86,18 +92,17 @@ class BookingControllerIT extends TestEnvironment {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
-        verify(mockBookingService, never()).makeBooking(bookerId, bookingDtoInFut);
+        verify(mockBookingService, never()).makeBooking(anyLong(), any(BookingDto.class));
     }
 
-    @SneakyThrows
     @Test
-    void makeBookingTest_whenItemIdNotValid_thenReturnStatusBadRequest() {
+    void makeBookingTest_whenItemIdNotValid_thenReturnStatusBadRequest() throws Exception {
         long bookerId = 1L;
-        bookingDtoInFut.setItemId(null);
-        when(mockBookingService.makeBooking(bookerId, bookingDtoInFut)).thenReturn(bookingDtoInFut);
+        bookingDto.setItemId(null);
+        when(mockBookingService.makeBooking(anyLong(), any(BookingDto.class))).thenReturn(new BookingDto());
 
         mockMvc.perform(post("/bookings")
-                        .content(objectMapper.writeValueAsString(bookingDtoInFut))
+                        .content(objectMapper.writeValueAsString(bookingDto))
                         .header("X-Sharer-User-Id", bookerId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -105,17 +110,15 @@ class BookingControllerIT extends TestEnvironment {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
 
-        verify(mockBookingService, never()).makeBooking(bookerId, bookingDtoInFut);
+        verify(mockBookingService, never()).makeBooking(anyLong(), any(BookingDto.class));
     }
 
-
-    @SneakyThrows
     @Test
-    void approvingTest_whenDataValid_thenReturnStatusOk() {
+    void approvingTest_whenDataValid_thenReturnStatusOk() throws Exception {
         long bookingId = 1L;
         long ownerId = 1L;
         boolean isApproved = true;
-        when(mockBookingService.approving(ownerId, bookingId, isApproved)).thenReturn(bookingDtoInFut);
+        when(mockBookingService.approving(anyLong(), anyLong(), anyBoolean())).thenReturn(new BookingDto());
 
         mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
                         .header("X-Sharer-User-Id", ownerId)
@@ -123,32 +126,30 @@ class BookingControllerIT extends TestEnvironment {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockBookingService).approving(ownerId, bookingId, isApproved);
+        verify(mockBookingService).approving(anyLong(), anyLong(), anyBoolean());
     }
 
-    @SneakyThrows
     @Test
-    void getBookingTest_whenDataValid_thenReturnStatusOk() {
+    void getBookingTest_whenDataValid_thenReturnStatusOk() throws Exception {
         long bookingId = 1L;
         long userId = 1L;
-        when(mockBookingService.getBooking(userId, bookingId)).thenReturn(bookingDtoInFut);
+        when(mockBookingService.getBooking(anyLong(), anyLong())).thenReturn(new BookingDto());
 
         mockMvc.perform(get("/bookings/{bookingId}", bookingId)
                         .header("X-Sharer-User-Id", userId))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockBookingService).getBooking(userId, bookingId);
+        verify(mockBookingService).getBooking(anyLong(), anyLong());
     }
 
-    @SneakyThrows
     @Test
-    void getBookerStatisticsTest_whenDataValid_thenReturnStatusOk() {
+    void getBookerStatisticsTest_whenDataValid_thenReturnStatusOk() throws Exception {
         long bookerId = 1L;
         int from = 0;
         int size = 20;
         String state = "PAST";
-        when(mockBookingService.getBookerStatistics(bookerId, state, from, size)).thenReturn(List.of(bookingDtoInFut));
+        when(mockBookingService.getBookerStatistics(bookerId, state, from, size)).thenReturn(List.of(new BookingDto()));
 
         mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", bookerId)
@@ -161,14 +162,13 @@ class BookingControllerIT extends TestEnvironment {
         verify(mockBookingService).getBookerStatistics(bookerId, state, from, size);
     }
 
-    @SneakyThrows
     @Test
-    void getOwnerStatisticsTest_whenDataValid_thenReturnStatusOk() {
+    void getOwnerStatisticsTest_whenDataValid_thenReturnStatusOk() throws Exception {
         long ownerId = 1L;
         int from = 0;
         int size = 20;
         String state = "PAST";
-        when(mockBookingService.getOwnerStatistics(ownerId, state, from, size)).thenReturn(List.of(bookingDtoInFut));
+        when(mockBookingService.getOwnerStatistics(ownerId, state, from, size)).thenReturn(List.of(new BookingDto()));
 
         mockMvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", ownerId)

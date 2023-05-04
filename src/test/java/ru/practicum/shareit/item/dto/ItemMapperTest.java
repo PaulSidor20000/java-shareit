@@ -7,8 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
+import ru.practicum.shareit.item.CommentRepository;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -23,56 +26,41 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ItemMapperTest {
     private final ItemMapper itemMapper;
-    private User owner;
-    private ItemDto itemDtoIn;
-    private Item item, itemFromDB;
+    private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
+    private final CommentRepository commentRepository;
+    private ItemDto itemDto;
+    private Item item;
+    private User user;
     private CommentDto commentDto;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @BeforeEach
     void setUp() {
-        Comment comment = new Comment();
-        comment.setId(1L);
-        comment.setText("Comment");
-        comment.setAuthorName("User1");
-        comment.setCreated(LocalDateTime.parse("2023-04-26T12:00:00", formatter));
+        user = userRepository.findById(1L).get();
+
+        Comment comment = commentRepository.findById(1L).get();
+
+        item = itemRepository.findById(1L).get();
+        item.setOwner(user);
+        item.setComments(Set.of(comment));
 
         commentDto = new CommentDto();
         commentDto.setId(1L);
         commentDto.setText("Comment");
-        commentDto.setAuthorName("User1");
-        commentDto.setCreated(LocalDateTime.parse("2023-04-26T12:00:00", formatter));
+        commentDto.setAuthorName("user2");
+        commentDto.setCreated(LocalDateTime.parse("2023-09-10T12:00:00", formatter));
 
-        owner = new User();
-        owner.setId(1L);
-        owner.setName("John");
-        owner.setEmail("john@mail.com");
-
-        item = new Item();
-        item.setId(1L);
-        item.setName("Item1");
-        item.setDescription("Item1 Description");
-        item.setAvailable(true);
-        item.setOwner(owner);
-        item.setComments(Set.of(comment));
-
-        itemFromDB = new Item();
-        itemFromDB.setId(1L);
-        itemFromDB.setName("Item");
-        itemFromDB.setDescription("Item");
-        itemFromDB.setAvailable(false);
-        itemFromDB.setOwner(owner);
-
-        itemDtoIn = new ItemDto();
-        itemDtoIn.setName("Item1");
-        itemDtoIn.setDescription("Item1 Description");
-        itemDtoIn.setAvailable(true);
+        itemDto = new ItemDto();
+        itemDto.setName("Item1");
+        itemDto.setDescription("Item1 Description");
+        itemDto.setAvailable(true);
     }
 
     @Test
     void mergeTest_ItemDtoAndUserToItem() {
         item.setId(null);
-        Item actual = itemMapper.merge(owner, itemDtoIn);
+        Item actual = itemMapper.merge(user, itemDto);
 
         assertEquals(item, actual);
     }
@@ -86,16 +74,16 @@ class ItemMapperTest {
 
     @Test
     void testMerge_mergeItemDtoToItemFromDb() {
-        Item actual = itemMapper.merge(itemFromDB, itemDtoIn);
+        Item actual = itemMapper.merge(item, itemDto);
 
         assertEquals(item, actual);
     }
 
     @Test
     void mergeTest_whenItemDtoIsNullReturnItemFromDb() {
-        Item actual = itemMapper.merge(itemFromDB, null);
+        Item actual = itemMapper.merge(item, null);
 
-        assertEquals(itemFromDB, actual);
+        assertEquals(item, actual);
     }
 
     @Test

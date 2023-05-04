@@ -1,12 +1,14 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 
 import javax.validation.Valid;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
@@ -17,7 +19,6 @@ public class BookingController {
     @PostMapping
     public BookingDto makeBooking(@RequestHeader(USER_ID) Long bookerId,
                                   @Valid @RequestBody BookingDto bookingDto) {
-
         return bookingService.makeBooking(bookerId, bookingDto);
     }
 
@@ -27,7 +28,6 @@ public class BookingController {
                                 @RequestParam(name = "approved") boolean isApproved) {
 
         return bookingService.approving(ownerId, bookingId, isApproved);
-
     }
 
     @GetMapping("/{bookingId}")

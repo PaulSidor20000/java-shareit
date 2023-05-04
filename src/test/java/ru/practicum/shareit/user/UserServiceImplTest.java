@@ -1,15 +1,16 @@
 package ru.practicum.shareit.user;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.shareit.TestEnvironment;
 import ru.practicum.shareit.exceptions.EmailDuplicateException;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,13 +21,33 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceImplTest extends TestEnvironment {
+class UserServiceImplTest {
     @Mock
     private UserMapper mockUserMapper;
     @Mock
     private UserRepository mockUserRepository;
     @InjectMocks
     private UserServiceImpl userService;
+    private UserDto userDtoIn, userDtoOut;
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        userDtoIn = new UserDto();
+        userDtoIn.setName("John");
+        userDtoIn.setEmail("john@mail.com");
+
+        userDtoOut = new UserDto();
+        userDtoOut.setId(1L);
+        userDtoOut.setName("John");
+        userDtoOut.setEmail("john@mail.com");
+
+        user = new User();
+        user.setId(1L);
+        user.setName("John");
+        user.setEmail("john@mail.com");
+
+    }
 
     @Test
     void createTest_whenInvoke_thenReturnUserDto() {

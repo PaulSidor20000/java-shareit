@@ -28,7 +28,6 @@ class ItemDtoJsonTest {
         commentDto.setText("Comment");
         commentDto.setAuthorName("User1");
         commentDto.setCreated(LocalDateTime.now());
-      //  commentDto.setItemId(1L);
 
         itemDto = new ItemDto();
         itemDto.setId(1L);
@@ -66,7 +65,6 @@ class ItemDtoJsonTest {
         assertThat(result).extractingJsonPathStringValue("$.comments[0].text").isEqualTo("Comment");
         assertThat(result).extractingJsonPathStringValue("$.comments[0].authorName").isEqualTo("User1");
         assertThat(result).extractingJsonPathValue("$.comments[0].created").isNotNull();
-//        assertThat(result).extractingJsonPathNumberValue("$.comments[0].itemId").isEqualTo(1);
     }
 
 }

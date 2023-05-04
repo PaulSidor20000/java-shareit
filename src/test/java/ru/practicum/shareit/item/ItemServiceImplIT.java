@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ItemServiceImplIT {
     private final ItemServiceImpl itemService;
-
     ItemDto itemDto1, itemDto2;
     CommentDto commentDto;
 

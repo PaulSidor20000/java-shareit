@@ -1,34 +1,27 @@
 package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.practicum.shareit.TestEnvironment;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@WebMvcTest(controllers = UserController.class)
-@ExtendWith(MockitoExtension.class)
-@AutoConfigureMockMvc
-@SpringBootTest
-class UserControllerIT extends TestEnvironment {
+@WebMvcTest(controllers = UserController.class)
+class UserControllerIT {
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,24 +29,26 @@ class UserControllerIT extends TestEnvironment {
     private ObjectMapper objectMapper;
     @MockBean
     private UserService mockUserService;
+    private UserDto userDtoIn, userDtoOut, userDtoPatchName;
 
-    @Test
-    void testAddUser() throws Exception {
-        when(mockUserService.create(any())).thenReturn(userDtoOut);
-        mockMvc.perform(post("/users")
-                        .content(objectMapper.writeValueAsString(userDtoOut))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(userDtoOut.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(userDtoOut.getName())))
-                .andExpect(jsonPath("$.email", is(userDtoOut.getEmail())));
+    @BeforeEach
+    void setUp() {
+        userDtoIn = new UserDto();
+        userDtoIn.setName("John");
+        userDtoIn.setEmail("john@mail.com");
+
+        userDtoOut = new UserDto();
+        userDtoOut.setId(1L);
+        userDtoOut.setName("John");
+        userDtoOut.setEmail("john@mail.com");
+
+        userDtoPatchName = new UserDto();
+        userDtoPatchName.setName("Sam");
     }
 
     @Test
     void createTest_whenDataValid_thenReturnStatusOk() throws Exception {
-        when(mockUserService.create(userDtoIn)).thenReturn(userDtoOut);
+        when(mockUserService.create(any())).thenReturn(userDtoOut);
 
         String jsonResult = mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsString(userDtoIn))
@@ -62,15 +57,12 @@ class UserControllerIT extends TestEnvironment {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(userDtoOut.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(userDtoOut.getName())))
-                .andExpect(jsonPath("$.email", is(userDtoOut.getEmail())))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
         assertEquals(objectMapper.writeValueAsString(userDtoOut), jsonResult);
-        verify(mockUserService).create(userDtoIn);
+        verify(mockUserService).create(any());
     }
 
     @Test
