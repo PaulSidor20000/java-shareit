@@ -24,6 +24,7 @@ public class ErrorHandler {
     public static final String FAILED_USER_ID = "Failed user id: %s";
     public static final String FAILED_OWNER_ID = "Failed owner id: %s";
     public static final String FAILED_BOOKING_ID = "Failed booking id: %s";
+    public static final String FAILED_REQUEST = "Failed request parameters";
     public static final String DUPLICATED_EMAIL = "Duplicated email found: %s";
 
     @ExceptionHandler
@@ -42,7 +43,8 @@ public class ErrorHandler {
     @ExceptionHandler({
             ValidationException.class,
             UnknownStateException.class,
-            IllegalArgumentException.class
+            IllegalArgumentException.class,
+            RequestNotValidException.class
     })
     public ResponseEntity<Map<String, String>> validationHandler(RuntimeException error) {
         log.warn(LOG_ERROR, error.getMessage());

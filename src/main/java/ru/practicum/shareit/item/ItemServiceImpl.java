@@ -1,11 +1,13 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingShort;
 import ru.practicum.shareit.booking.model.BookStatus;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exceptions.RequestNotValidException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentMapper;
@@ -17,8 +19,8 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -79,8 +81,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> findAllItemsOfOwner(Long ownerId) {
-        Map<Long, Item> items = itemRepository.findItemsByOwnerIdAndFetchAllEntities(ownerId).stream()
+    public List<ItemDto> findAllItemsOfOwner(Long ownerId, Integer from, Integer size) {
+        PageRequest page = getPage(from, size);
+
+        Map<Long, Item> items = itemRepository.findItemsByOwnerIdAndFetchAllEntities(ownerId, page).stream()
                 .collect(Collectors.toMap(Item::getId, Function.identity()));
 
         Map<Long, BookingShort> nextBookings = itemRepository.findNextBookings(items.keySet()).stream()
@@ -97,11 +101,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> search(String query) {
+    public List<ItemDto> search(String query, Integer from, Integer size) {
+        PageRequest page = getPage(from, size);
+
         if (query.equals("")) {
             return Collections.emptyList();
         }
-        return itemRepository.searchByNameAndDescription(query)
+        return itemRepository.searchByNameAndDescription(query, page)
                 .stream()
                 .map(itemMapper::mapForUser)
                 .collect(Collectors.toList());
@@ -127,6 +133,13 @@ public class ItemServiceImpl implements ItemService {
         }
 
         throw new ValidationException(String.format(FAILED_USER_ID + " can't comment", bookerId));
+    }
+
+    private PageRequest getPage(Integer from, Integer size) {
+        if (from < 0 || size <= 0) {
+            throw new RequestNotValidException(FAILED_REQUEST);
+        }
+        return PageRequest.of(from > 0 ? from / size : 0, size);
     }
 
 }

@@ -1,12 +1,13 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -21,9 +22,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     " join fetch b.booker" +
                     " join fetch b.item ib" +
                     " left join fetch ib.comments" +
-                    " where u = :owner"
+                    " where u = :owner" +
+                    " order by b.id desc"
     )
-    Collection<Booking> findBookingOfOwnerIdAndFetchAllEntities(@Param("owner") User owner);
+    List<Booking> findBookingOfOwnerIdAndFetchAllEntities(@Param("owner") User owner, PageRequest page);
 
     @Query(
             "select b" +
@@ -32,7 +34,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     " join fetch b.booker" +
                     " join fetch b.item ib" +
                     " left join fetch ib.comments" +
-                    " where u = :booker"
+                    " where u = :booker" +
+                    " order by b.id desc"
     )
-    Collection<Booking> findBookingsOfUserAndFetchAllEntities(@Param("booker") User booker);
+    List<Booking> findBookingsOfUserAndFetchAllEntities(@Param("booker") User booker, PageRequest page);
 }

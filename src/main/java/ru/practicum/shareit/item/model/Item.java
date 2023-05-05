@@ -29,6 +29,9 @@ public class Item {
     @Column(name = "available", nullable = false)
     private boolean available;
 
+    @Column(name = "request_id")
+    private Long requestId;
+
     @ToString.Exclude
     @OneToMany(mappedBy = "item", fetch = FetchType.LAZY)
     private Set<Booking> bookings;

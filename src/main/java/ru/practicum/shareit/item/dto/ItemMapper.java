@@ -8,7 +8,10 @@ import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-@Mapper(componentModel = "spring", uses = {CommentMapper.class})
+@Mapper(componentModel = "spring",
+        uses = {
+                CommentMapper.class
+        })
 public abstract class ItemMapper {
     @Autowired
     protected ItemRepository itemRepository;

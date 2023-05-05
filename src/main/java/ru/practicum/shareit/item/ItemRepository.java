@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,7 +9,9 @@ import ru.practicum.shareit.booking.dto.BookingShort;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
@@ -30,7 +33,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " or lower(i.description) like lower(concat('%', :query, '%')))" +
                     " order by i.id"
     )
-    Collection<Item> searchByNameAndDescription(@Param("query") String query);
+    List<Item> searchByNameAndDescription(@Param("query") String query, PageRequest page);
 
     @Query(
             "select i" +
@@ -39,7 +42,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " left join fetch i.comments" +
                     " where o.id = :id"
     )
-    Collection<Item> findItemsByOwnerIdAndFetchAllEntities(@Param("id") Long ownerId);
+    List<Item> findItemsByOwnerIdAndFetchAllEntities(@Param("id") Long ownerId, PageRequest page);
 
     @Query(
             value = "select b.id as id, b.booker_id as bookerId, b.item_id as itemId" +
@@ -52,7 +55,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " limit 1",
             nativeQuery = true
     )
-    Collection<BookingShort> findNextBookings(@Param("itemIds") Collection<Long> itemIds);
+    List<BookingShort> findNextBookings(@Param("itemIds") Collection<Long> itemIds);
 
     @Query(
             value = "select b.id as id, b.booker_id as bookerId, b.item_id as itemId" +
@@ -65,7 +68,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                     " limit 1",
             nativeQuery = true
     )
-    Collection<BookingShort> findLastBookings(@Param("itemIds") Collection<Long> itemIds);
+    List<BookingShort> findLastBookings(@Param("itemIds") Collection<Long> itemIds);
 
     @Query(
             value = "select b.id as id, b.booker_id as bookerId, b.item_id as itemId" +
@@ -92,4 +95,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             nativeQuery = true
     )
     Optional<BookingShort> findLastBookingsOfItem(@Param("itemId") Long itemId);
+
+    @Query(
+            "select i" +
+                    " from Item i" +
+                    " left join fetch i.comments" +
+                    " where i.requestId in :ids"
+    )
+    List<Item> findAllItemsByRequestIds(@Param("ids") Set<Long> requestIds);
 }

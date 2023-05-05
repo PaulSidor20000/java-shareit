@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -9,6 +10,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import javax.validation.Valid;
 import java.util.Collection;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/items")
@@ -44,13 +46,19 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> findAllItemsOfOwner(@RequestHeader(USER_ID) Long ownerId) {
-        return itemService.findAllItemsOfOwner(ownerId);
+    public Collection<ItemDto> findAllItemsOfOwner(@RequestHeader(USER_ID) Long ownerId,
+                                                   @RequestParam(required = false, defaultValue = "0") Integer from,
+                                                   @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        return itemService.findAllItemsOfOwner(ownerId, from, size);
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> search(@RequestParam(value = "text") String searchRequest) {
-        return itemService.search(searchRequest);
+    public Collection<ItemDto> search(@RequestParam(value = "text") String searchRequest,
+                                      @RequestParam(required = false, defaultValue = "0") Integer from,
+                                      @RequestParam(required = false, defaultValue = "20") Integer size
+    ) {
+        return itemService.search(searchRequest, from, size);
     }
 
     @PostMapping("/{id}/comment")
