@@ -15,7 +15,6 @@ public class ErrorHandler {
     public static final String A_ERROR = "error";
     public static final String LOG_ERROR = "Error message: {}";
     public static final String SERVER_ERROR = "Server error";
-    public static final String UNKNOWN_STATE = "Unknown state: %s";
     public static final String FAILED_ITEM_ID = "Failed Item id: %s";
     public static final String FAILED_USER_ID = "Failed user id: %s";
     public static final String FAILED_OWNER_ID = "Failed owner id: %s";
@@ -25,7 +24,6 @@ public class ErrorHandler {
 
     @ExceptionHandler({
             ValidationException.class,
-            UnknownStateException.class,
             IllegalArgumentException.class,
             RequestNotValidException.class
     })

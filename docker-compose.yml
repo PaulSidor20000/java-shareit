@@ -10,7 +10,6 @@ services:
     environment:
       - SHAREIT_SERVER_URL=http://server:9090
       - TZ=GMT
-#      - TZ=Europe/Moscow
 
   server:
     build: server
@@ -18,17 +17,14 @@ services:
     ports:
       - "9090:9090"
     depends_on:
-      - db
+      - postgres
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/shareit_db
       - TZ=GMT
-#      - TZ=Europe/Moscow
 
-  db:
+  postgres:
     image: postgres:13.7-alpine
-    container_name: db
-#    volumes:
-#      - /var/lib/postgresql/data/
+    container_name: postgres
     ports:
       - "6541:5432"
     environment:
@@ -36,4 +32,3 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
       - TZ=GMT
-#      - TZ=Europe/Moscow

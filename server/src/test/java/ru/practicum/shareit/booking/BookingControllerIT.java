@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.BookState;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -153,13 +154,13 @@ class BookingControllerIT {
         long bookerId = 1L;
         int from = 0;
         int size = 20;
-        String state = "PAST";
+        BookState state = BookState.valueOf("PAST");
         PageRequest page = PageRequest.of(from, size);
         when(mockBookingService.getBookerStatistics(bookerId, state, page)).thenReturn(List.of(new BookingDto()));
 
         mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", bookerId)
-                        .param("state", state)
+                        .param("state", String.valueOf(state))
                         .param("from", String.valueOf(from))
                         .param("size", String.valueOf(size)))
                 .andDo(print())
@@ -173,13 +174,13 @@ class BookingControllerIT {
         long ownerId = 1L;
         int from = 0;
         int size = 20;
-        String state = "PAST";
+        BookState state = BookState.valueOf("PAST");
         PageRequest page = PageRequest.of(from, size);
         when(mockBookingService.getOwnerStatistics(ownerId, state, page)).thenReturn(List.of(new BookingDto()));
 
         mockMvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", ownerId)
-                        .param("state", state)
+                        .param("state", String.valueOf(state))
                         .param("from", String.valueOf(from))
                         .param("size", String.valueOf(size)))
                 .andDo(print())

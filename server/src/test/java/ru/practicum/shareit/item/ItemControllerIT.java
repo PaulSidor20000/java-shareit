@@ -187,18 +187,20 @@ class ItemControllerIT {
     void searchTest_whenInvoke_thenReturnStatusOk() throws Exception {
         int from = 0;
         int size = 20;
+        long userId = 1L;
         String searchRequest = "item1";
         PageRequest page = PageRequest.of(from, size);
-        when(mockItemService.search(searchRequest, page)).thenReturn(List.of(new ItemDto()));
+        when(mockItemService.search(searchRequest, userId, page)).thenReturn(List.of(new ItemDto()));
 
         mockMvc.perform(get("/items/search")
                         .param("text", searchRequest)
+                        .header("X-Sharer-User-Id", userId)
                         .param("from", String.valueOf(from))
                         .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockItemService).search(searchRequest, page);
+        verify(mockItemService).search(searchRequest, userId, page);
     }
 
     @Test

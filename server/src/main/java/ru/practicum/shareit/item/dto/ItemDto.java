@@ -1,12 +1,10 @@
 package ru.practicum.shareit.item.dto;
 
 import lombok.Data;
-import lombok.experimental.Accessors;
 import ru.practicum.shareit.booking.dto.BookingShort;
 
 import java.util.Set;
 
-@Accessors(chain = true)
 @Data
 public class ItemDto {
 

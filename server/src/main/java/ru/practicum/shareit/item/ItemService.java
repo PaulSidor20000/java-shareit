@@ -18,7 +18,7 @@ public interface ItemService {
 
     Collection<ItemDto> findAllItemsOfOwner(Long ownerId, PageRequest page);
 
-    Collection<ItemDto> search(String searchRequest, PageRequest page);
+    Collection<ItemDto> search(String searchRequest, Long userId, PageRequest page);
 
     CommentDto createComment(Long itemId, Long bookerId, CommentDto commentDto);
 }

@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.model.BookState;
 import ru.practicum.shareit.booking.model.BookStatus;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -121,27 +122,27 @@ class BookingServiceImplIT {
         long bookerId = 3L;
         PageRequest page = PageRequest.of(from, size);
 
-        String state = "PAST";
+        BookState state = BookState.valueOf("PAST");
         List<BookingDto> bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(bookingDto3), bookingDtosActual);
 
-        state = "CURRENT";
+        state = BookState.valueOf("CURRENT");
         bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
-        state = "FUTURE";
+        state = BookState.valueOf("FUTURE");
         bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
-        state = "WAITING";
+        state = BookState.valueOf("WAITING");
         bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
-        state = "REJECTED";
+        state = BookState.valueOf("REJECTED");
         bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
-        state = "ALL";
+        state = BookState.valueOf("ALL");
         bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(bookingDto3), bookingDtosActual);
     }
@@ -153,27 +154,27 @@ class BookingServiceImplIT {
         long ownerId = 1L;
         PageRequest page = PageRequest.of(from, size);
 
-        String state = "PAST";
+        BookState state = BookState.valueOf("PAST");
         List<BookingDto> bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto3, bookingDto2), bookingDtosActual);
 
-        state = "CURRENT";
+        state = BookState.valueOf("CURRENT");
         bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
-        state = "FUTURE";
+        state = BookState.valueOf("FUTURE");
         bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto1, bookingDto4), bookingDtosActual);
 
-        state = "WAITING";
+        state = BookState.valueOf("WAITING");
         bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto1), bookingDtosActual);
 
-        state = "REJECTED";
+        state = BookState.valueOf("REJECTED");
         bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto2), bookingDtosActual);
 
-        state = "ALL";
+        state = BookState.valueOf("ALL");
         bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto1, bookingDto4, bookingDto3, bookingDto2), bookingDtosActual);
     }

@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
@@ -13,19 +12,22 @@ import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
-@Controller
-@RequestMapping(path = "/bookings")
-@RequiredArgsConstructor
 @Slf4j
 @Validated
+@RestController
+@RequiredArgsConstructor
+@RequestMapping(path = "/bookings")
 public class BookingController {
     private final BookingClient bookingClient;
     public static final String USER_HEADER_ID = "X-Sharer-User-Id";
 
     @PostMapping
     public ResponseEntity<Object> makeBooking(@RequestHeader(USER_HEADER_ID) Long userId,
-                                              @RequestBody @Valid BookItemRequestDto requestDto) {
+                                              @Valid @RequestBody BookItemRequestDto requestDto) {
         log.info("POST booking {}, userId={}", requestDto, userId);
+        if (requestDto.getStart().isAfter(requestDto.getEnd()) || requestDto.getStart().isEqual(requestDto.getEnd())) {
+            throw new IllegalArgumentException("Wrong booking time parameter");
+        }
         return bookingClient.makeBooking(userId, requestDto);
     }
 

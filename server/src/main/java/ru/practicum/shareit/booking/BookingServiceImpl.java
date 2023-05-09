@@ -11,7 +11,6 @@ import ru.practicum.shareit.booking.model.BookStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.BookingNotMatchException;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
-import ru.practicum.shareit.exceptions.UnknownStateException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
@@ -39,10 +38,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto makeBooking(Long bookerId, BookingDto bookingDto) {
-        if (!isValid(bookerId, bookingDto)) {
-            throw new BookingNotMatchException("Failed Booking DTO validation");
-        }
-
+        User booker = userRepository.findById(bookerId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
         Item item = itemRepository.findItemByIdAndFetchComments(bookingDto.getItemId()).orElseThrow(() ->
                 new EntityNotFoundException(String.format(FAILED_ITEM_ID, bookingDto.getItemId())));
 
@@ -54,8 +51,6 @@ public class BookingServiceImpl implements BookingService {
             throw new BookingNotMatchException("Failed to book item by owner");
         }
 
-        User booker = userRepository.findById(bookerId)
-                .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
         Booking booking = bookingMapper.merge(booker, item, bookingDto);
 
         return bookingMapper.map(bookingRepository.save(booking));
@@ -97,29 +92,29 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getBookerStatistics(Long bookerId, String requestState, PageRequest page) {
+    public List<BookingDto> getBookerStatistics(Long bookerId, BookState state, PageRequest page) {
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
 
         Collection<Booking> bookings = userRepository.findBookingsOfUserAndFetchAllEntities(booker, page);
 
-        return getBookingStatistics(bookings, requestState);
+        return getBookingStatistics(bookings, state);
     }
 
     @Override
-    public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState, PageRequest page) {
+    public List<BookingDto> getOwnerStatistics(Long ownerId, BookState state, PageRequest page) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
 
         Collection<Booking> bookings = userRepository.findBookingOfOwnerIdAndFetchAllEntities(owner, page);
 
-        return getBookingStatistics(bookings, requestState);
+        return getBookingStatistics(bookings, state);
     }
 
-    private List<BookingDto> getBookingStatistics(Collection<Booking> bookings, String requestState) {
+    private List<BookingDto> getBookingStatistics(Collection<Booking> bookings, BookState state) {
         LocalDateTime now = LocalDateTime.now();
 
-        switch (getState(requestState)) {
+        switch (state) {
             case PAST:
                 return bookings.stream()
                         .filter(booking -> booking.getEnd().isBefore(now))
@@ -157,23 +152,6 @@ public class BookingServiceImpl implements BookingService {
                         .map(bookingMapper::map)
                         .collect(Collectors.toCollection(LinkedList::new));
         }
-    }
-
-
-    private BookState getState(String requestState) {
-        try {
-            return BookState.valueOf(requestState);
-        } catch (IllegalArgumentException e) {
-            throw new UnknownStateException(String.format(UNKNOWN_STATE, requestState));
-        }
-    }
-
-    private boolean isValid(Long bookerId, BookingDto bookingDto) {
-        if (bookingDto.getStart().isAfter(bookingDto.getEnd())
-                || bookingDto.getStart().isEqual(bookingDto.getEnd())) {
-            throw new ValidationException("Wrong booking time parameter");
-        }
-        return userRepository.existsById(bookerId);
     }
 
 }

@@ -91,21 +91,27 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toMap(BookingShort::getItemId, Function.identity()));
 
         return items.values().stream()
-                .map(item -> itemMapper.mapForUser(item)
-                        .setNextBooking(nextBookings.get(item.getId()))
-                        .setLastBooking(lastBookings.get(item.getId())))
+                .map(item -> {
+                    ItemDto itemDto = itemMapper.mapForUser(item);
+                    itemDto.setNextBooking(nextBookings.get(item.getId()));
+                    itemDto.setLastBooking(lastBookings.get(item.getId()));
+                    return itemDto;
+                })
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ItemDto> search(String query, PageRequest page) {
+    public List<ItemDto> search(String query, Long userId, PageRequest page) {
         if (query.equals("")) {
             return Collections.emptyList();
         }
-        return itemRepository.searchByNameAndDescription(query, page)
-                .stream()
-                .map(itemMapper::mapForUser)
-                .collect(Collectors.toList());
+        if (userRepository.existsById(userId)) {
+            return itemRepository.searchByNameAndDescription(query, page)
+                    .stream()
+                    .map(itemMapper::mapForUser)
+                    .collect(Collectors.toList());
+        }
+        throw new EntityNotFoundException(FAILED_USER_ID);
     }
 
     @Override

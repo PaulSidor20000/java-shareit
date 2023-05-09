@@ -48,10 +48,12 @@ class ErrorHandlerTest {
 
     @Test
     void runtimeExceptionTest_returnsErrorStatus() throws Exception {
-        bookingDto.setStart(LocalDateTime.now().plusDays(2));
+        long bookingId = 2L;
+        boolean isApproved = true;
 
-        mockMvc.perform(post("/bookings")
+        mockMvc.perform(patch("/bookings/{bookingId}", bookingId)
                         .content(objectMapper.writeValueAsString(bookingDto))
+                        .param("approved", String.valueOf(isApproved))
                         .header("X-Sharer-User-Id", 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)

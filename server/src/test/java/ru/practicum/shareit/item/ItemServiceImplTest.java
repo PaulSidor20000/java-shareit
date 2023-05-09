@@ -194,13 +194,15 @@ class ItemServiceImplTest {
     void searchText_whenQueryNotEmpty_thenReturnCollectionOfItemDtoForUser() {
         int from = 0;
         int size = 20;
+        long userId = 1L;
         String query = "дрЕль";
         PageRequest page = PageRequest.of(from, size);
 
+        when(mockUserRepository.existsById(anyLong())).thenReturn(true);
         when(mockItemRepository.searchByNameAndDescription(anyString(), eq(page))).thenReturn(List.of(item));
         when(mockItemMapper.mapForUser(item)).thenReturn(new ItemDto());
 
-        List<ItemDto> itemDtosActual = itemService.search(query, page);
+        List<ItemDto> itemDtosActual = itemService.search(query, userId, page);
 
         assertEquals(new ItemDto(), itemDtosActual.get(0));
         assertEquals(1, itemDtosActual.size());
@@ -210,10 +212,11 @@ class ItemServiceImplTest {
     void searchText_whenQueryEmpty_thenReturnEmptyCollection() {
         int from = 0;
         int size = 20;
+        long userId = 1L;
         String query = "";
         PageRequest page = PageRequest.of(from, size);
 
-        List<ItemDto> itemDtosActual = itemService.search(query, page);
+        List<ItemDto> itemDtosActual = itemService.search(query, userId, page);
 
         assertEquals(List.of(), itemDtosActual);
         verify(mockItemRepository, never()).searchByNameAndDescription(query, page);
@@ -224,10 +227,11 @@ class ItemServiceImplTest {
     void getPageTest_whenRequestDataNotValid_thenRequestNotValidExceptionThrown() {
         int from = -1;
         int size = 20;
+        long userId = 1L;
         String query = "";
         PageRequest page = PageRequest.of(from, size);
 
-        assertThrows(RequestNotValidException.class, () -> itemService.search(query, page));
+        assertThrows(RequestNotValidException.class, () -> itemService.search(query, userId, page));
         verify(mockItemRepository, never()).searchByNameAndDescription(query, page);
     }
 
