@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -49,7 +50,8 @@ public class ItemController {
                                                    @RequestParam(required = false, defaultValue = "0") Integer from,
                                                    @RequestParam(required = false, defaultValue = "20") Integer size
     ) {
-        return itemService.findAllItemsOfOwner(ownerId, from, size);
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemService.findAllItemsOfOwner(ownerId, page);
     }
 
     @GetMapping("/search")
@@ -57,7 +59,8 @@ public class ItemController {
                                       @RequestParam(required = false, defaultValue = "0") Integer from,
                                       @RequestParam(required = false, defaultValue = "20") Integer size
     ) {
-        return itemService.search(searchRequest, from, size);
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemService.search(searchRequest, page);
     }
 
     @PostMapping("/{id}/comment")

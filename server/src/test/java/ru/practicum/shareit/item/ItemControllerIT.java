@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -65,7 +66,7 @@ class ItemControllerIT {
         verify(mockItemService).create(anyLong(), any(ItemDto.class));
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void createTest_whenNameNotValid_thenReturnStatusBadRequest() throws Exception {
         long ownerId = 2L;
@@ -83,7 +84,7 @@ class ItemControllerIT {
         verify(mockItemService, never()).create(ownerId, itemDto);
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void createTest_whenDescriptionNotValid_thenReturnStatusBadRequest() throws Exception {
         long ownerId = 2L;
@@ -101,7 +102,7 @@ class ItemControllerIT {
         verify(mockItemService, never()).create(anyLong(), any(ItemDto.class));
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void createTest_whenAvailableNotValid_thenReturnStatusBadRequest() throws Exception {
         long ownerId = 2L;
@@ -169,7 +170,8 @@ class ItemControllerIT {
         int from = 0;
         int size = 20;
         long ownerId = 1L;
-        when(mockItemService.findAllItemsOfOwner(ownerId, from, size)).thenReturn(List.of(new ItemDto()));
+        PageRequest page = PageRequest.of(from, size);
+        when(mockItemService.findAllItemsOfOwner(ownerId, page)).thenReturn(List.of(new ItemDto()));
 
         mockMvc.perform(get("/items/")
                         .header("X-Sharer-User-Id", ownerId)
@@ -178,7 +180,7 @@ class ItemControllerIT {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockItemService).findAllItemsOfOwner(ownerId, from, size);
+        verify(mockItemService).findAllItemsOfOwner(ownerId, page);
     }
 
     @Test
@@ -186,7 +188,8 @@ class ItemControllerIT {
         int from = 0;
         int size = 20;
         String searchRequest = "item1";
-        when(mockItemService.search(searchRequest, from, size)).thenReturn(List.of(new ItemDto()));
+        PageRequest page = PageRequest.of(from, size);
+        when(mockItemService.search(searchRequest, page)).thenReturn(List.of(new ItemDto()));
 
         mockMvc.perform(get("/items/search")
                         .param("text", searchRequest)
@@ -195,7 +198,7 @@ class ItemControllerIT {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockItemService).search(searchRequest, from, size);
+        verify(mockItemService).search(searchRequest, page);
     }
 
     @Test
@@ -220,7 +223,7 @@ class ItemControllerIT {
         verify(mockItemService).createComment(anyLong(), anyLong(), any(CommentDto.class));
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void createCommentTest_whenCommentNotDataValid_thenReturnStatusBadRequest() throws Exception {
         long itemId = 1L;

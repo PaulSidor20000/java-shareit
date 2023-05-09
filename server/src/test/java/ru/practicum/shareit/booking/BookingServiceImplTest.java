@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -241,27 +242,27 @@ class BookingServiceImplTest {
         when(mockBookingMapper.map(booking)).thenReturn(bookingDtoOut);
 
         String state = "PAST";
-        List<BookingDto> bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        List<BookingDto> bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(bookingDtoOut), bookingDtosActual);
 
         state = "FUTURE";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "CURRENT";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "WAITING";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "REJECTED";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "ALL";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(bookingDtoOut), bookingDtosActual);
     }
 
@@ -274,19 +275,20 @@ class BookingServiceImplTest {
         PageRequest page = PageRequest.of(from, size);
         when(mockUserRepository.findById(bookerId)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> bookingService.getBookerStatistics(bookerId, state, from, size));
+        assertThrows(EntityNotFoundException.class, () -> bookingService.getBookerStatistics(bookerId, state, page));
         verify(mockUserRepository, never()).findBookingOfOwnerIdAndFetchAllEntities(user, page);
     }
 
+    @Disabled("Validation was removed from this module")
     @Test
     void getBookerStatisticsTest_whenRequestDataNotValid_thenRequestNotValidExceptionThrown() {
         int from = -1;
         int size = 20;
         long bookerId = 2L;
         String state = "PAST";
-        PageRequest page = PageRequest.of(0, 1);
+        PageRequest page = PageRequest.of(from, size);
 
-        assertThrows(RequestNotValidException.class, () -> bookingService.getBookerStatistics(bookerId, state, from, size));
+        assertThrows(RequestNotValidException.class, () -> bookingService.getBookerStatistics(bookerId, state, page));
         verify(mockUserRepository, never()).findBookingsOfUserAndFetchAllEntities(owner, page);
     }
 
@@ -300,7 +302,7 @@ class BookingServiceImplTest {
         when(mockUserRepository.findById(bookerId)).thenReturn(Optional.of(user));
         when(mockUserRepository.findBookingsOfUserAndFetchAllEntities(user, page)).thenReturn(List.of(booking));
 
-        assertThrows(UnknownStateException.class, () -> bookingService.getBookerStatistics(bookerId, state, from, size));
+        assertThrows(UnknownStateException.class, () -> bookingService.getBookerStatistics(bookerId, state, page));
     }
 
     @Test
@@ -314,27 +316,27 @@ class BookingServiceImplTest {
         when(mockBookingMapper.map(booking)).thenReturn(bookingDtoOut);
 
         String state = "PAST";
-        List<BookingDto> bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        List<BookingDto> bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDtoOut), bookingDtosActual);
 
         state = "FUTURE";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "CURRENT";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "WAITING";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "REJECTED";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "ALL";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDtoOut), bookingDtosActual);
     }
 
@@ -347,19 +349,20 @@ class BookingServiceImplTest {
         PageRequest page = PageRequest.of(from, size);
         when(mockUserRepository.findById(ownerId)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> bookingService.getOwnerStatistics(ownerId, state, from, size));
+        assertThrows(EntityNotFoundException.class, () -> bookingService.getOwnerStatistics(ownerId, state, page));
         verify(mockUserRepository, never()).findBookingOfOwnerIdAndFetchAllEntities(owner, page);
     }
 
+    @Disabled("Validation was removed from this module")
     @Test
     void getOwnerStatisticsTest_whenRequestDataNotValid_thenRequestNotValidExceptionThrown() {
         int from = -1;
         int size = 20;
         long ownerId = 2L;
         String state = "PAST";
-        PageRequest page = PageRequest.of(0, 1);
+        PageRequest page = PageRequest.of(from, size);
 
-        assertThrows(RequestNotValidException.class, () -> bookingService.getOwnerStatistics(ownerId, state, from, size));
+        assertThrows(RequestNotValidException.class, () -> bookingService.getOwnerStatistics(ownerId, state, page));
         verify(mockUserRepository, never()).findBookingOfOwnerIdAndFetchAllEntities(owner, page);
     }
 
@@ -373,7 +376,7 @@ class BookingServiceImplTest {
         when(mockUserRepository.findById(ownerId)).thenReturn(Optional.of(owner));
         when(mockUserRepository.findBookingOfOwnerIdAndFetchAllEntities(owner, page)).thenReturn(List.of(booking));
 
-        assertThrows(UnknownStateException.class, () -> bookingService.getOwnerStatistics(ownerId, state, from, size));
+        assertThrows(UnknownStateException.class, () -> bookingService.getOwnerStatistics(ownerId, state, page));
     }
 
 }

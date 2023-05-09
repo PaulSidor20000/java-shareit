@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -63,7 +64,7 @@ class ItemRequestControllerIT {
         verify(mockItemRequestService).create(anyLong(), any(ItemRequestDto.class));
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void createTest_whenDescriptionNotValid_thenReturnStatusBadRequest() throws Exception {
         long userId = 1L;
@@ -114,7 +115,8 @@ class ItemRequestControllerIT {
         long userId = 1L;
         int from = 0;
         int size = 20;
-        when(mockItemRequestService.findAllRequestsOfOthers(userId, from, size)).thenReturn(List.of(new ItemRequestDto()));
+        PageRequest page = PageRequest.of(from, size);
+        when(mockItemRequestService.findAllRequestsOfOthers(userId, page)).thenReturn(List.of(new ItemRequestDto()));
 
         mockMvc.perform(get("/requests/all")
                         .header("X-Sharer-User-Id", userId)
@@ -123,7 +125,7 @@ class ItemRequestControllerIT {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockItemRequestService).findAllRequestsOfOthers(userId, from, size);
+        verify(mockItemRequestService).findAllRequestsOfOthers(userId, page);
     }
 
 }

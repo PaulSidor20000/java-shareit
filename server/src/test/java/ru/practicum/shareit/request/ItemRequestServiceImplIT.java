@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.EntityNotFoundException;
@@ -95,8 +96,9 @@ class ItemRequestServiceImplIT {
         int from = 0;
         int size = 20;
         long userId = 2L;
+        PageRequest page = PageRequest.of(from, size);
 
-        Collection<ItemRequestDto> itemRequestDtosActual = itemRequestService.findAllRequestsOfOthers(userId, from, size);
+        Collection<ItemRequestDto> itemRequestDtosActual = itemRequestService.findAllRequestsOfOthers(userId, page);
 
         assertEquals(List.of(itemRequestDto), itemRequestDtosActual);
     }

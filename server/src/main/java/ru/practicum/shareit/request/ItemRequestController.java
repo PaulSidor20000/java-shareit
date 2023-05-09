@@ -2,6 +2,7 @@ package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
@@ -38,7 +39,8 @@ public class ItemRequestController {
                                                               @RequestParam(required = false, defaultValue = "0") Integer from,
                                                               @RequestParam(required = false, defaultValue = "20") Integer size
     ) {
-        return itemRequestService.findAllRequestsOfOthers(userId, from, size);
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemRequestService.findAllRequestsOfOthers(userId, page);
     }
 
 

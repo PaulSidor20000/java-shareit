@@ -9,7 +9,10 @@ import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.BookState;
 import ru.practicum.shareit.booking.model.BookStatus;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.exceptions.*;
+import ru.practicum.shareit.exceptions.BookingNotMatchException;
+import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exceptions.UnknownStateException;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
@@ -94,8 +97,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getBookerStatistics(Long bookerId, String requestState, Integer from, Integer size) {
-        PageRequest page = getPage(from, size);
+    public List<BookingDto> getBookerStatistics(Long bookerId, String requestState, PageRequest page) {
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, bookerId)));
 
@@ -105,21 +107,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState, Integer from, Integer size) {
-        PageRequest page = getPage(from, size);
+    public List<BookingDto> getOwnerStatistics(Long ownerId, String requestState, PageRequest page) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format(FAILED_USER_ID, ownerId)));
 
         Collection<Booking> bookings = userRepository.findBookingOfOwnerIdAndFetchAllEntities(owner, page);
 
         return getBookingStatistics(bookings, requestState);
-    }
-
-    private PageRequest getPage(Integer from, Integer size) {
-        if (from < 0 || size <= 0) {
-            throw new RequestNotValidException(FAILED_REQUEST);
-        }
-        return PageRequest.of(from > 0 ? from / size : 0, size);
     }
 
     private List<BookingDto> getBookingStatistics(Collection<Booking> bookings, String requestState) {

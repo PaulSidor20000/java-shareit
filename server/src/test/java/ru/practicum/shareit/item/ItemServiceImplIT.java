@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -53,8 +54,8 @@ class ItemServiceImplIT {
         int from = 0;
         int size = 20;
         long ownerId = 2L;
-
-        List<ItemDto> itemDtosActual = itemService.findAllItemsOfOwner(ownerId, from, size);
+        PageRequest page = PageRequest.of(from, size);
+        List<ItemDto> itemDtosActual = itemService.findAllItemsOfOwner(ownerId, page);
 
         assertEquals(2, itemDtosActual.size());
         assertEquals(List.of(itemDto1, itemDto2), itemDtosActual);

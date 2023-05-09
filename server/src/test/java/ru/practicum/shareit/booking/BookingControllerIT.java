@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -60,7 +61,7 @@ class BookingControllerIT {
         verify(mockBookingService).makeBooking(anyLong(), any(BookingDto.class));
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void makeBookingTest_whenStartDataNotValid_thenReturnStatusBadRequest() throws Exception {
         long bookerId = 1L;
@@ -79,7 +80,7 @@ class BookingControllerIT {
         verify(mockBookingService, never()).makeBooking(anyLong(), any(BookingDto.class));
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void makeBookingTest_whenEndDataNotValid_thenReturnStatusBadRequest() throws Exception {
         long bookerId = 1L;
@@ -98,7 +99,7 @@ class BookingControllerIT {
         verify(mockBookingService, never()).makeBooking(anyLong(), any(BookingDto.class));
     }
 
-    @Disabled
+    @Disabled("Validation was removed from this module")
     @Test
     void makeBookingTest_whenItemIdNotValid_thenReturnStatusBadRequest() throws Exception {
         long bookerId = 1L;
@@ -153,7 +154,8 @@ class BookingControllerIT {
         int from = 0;
         int size = 20;
         String state = "PAST";
-        when(mockBookingService.getBookerStatistics(bookerId, state, from, size)).thenReturn(List.of(new BookingDto()));
+        PageRequest page = PageRequest.of(from, size);
+        when(mockBookingService.getBookerStatistics(bookerId, state, page)).thenReturn(List.of(new BookingDto()));
 
         mockMvc.perform(get("/bookings")
                         .header("X-Sharer-User-Id", bookerId)
@@ -163,7 +165,7 @@ class BookingControllerIT {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockBookingService).getBookerStatistics(bookerId, state, from, size);
+        verify(mockBookingService).getBookerStatistics(bookerId, state, page);
     }
 
     @Test
@@ -172,7 +174,8 @@ class BookingControllerIT {
         int from = 0;
         int size = 20;
         String state = "PAST";
-        when(mockBookingService.getOwnerStatistics(ownerId, state, from, size)).thenReturn(List.of(new BookingDto()));
+        PageRequest page = PageRequest.of(from, size);
+        when(mockBookingService.getOwnerStatistics(ownerId, state, page)).thenReturn(List.of(new BookingDto()));
 
         mockMvc.perform(get("/bookings/owner")
                         .header("X-Sharer-User-Id", ownerId)
@@ -182,7 +185,7 @@ class BookingControllerIT {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(mockBookingService).getOwnerStatistics(ownerId, state, from, size);
+        verify(mockBookingService).getOwnerStatistics(ownerId, state, page);
     }
 
 }

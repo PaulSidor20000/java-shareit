@@ -3,16 +3,17 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentRequestDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 @Slf4j
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/items")
@@ -62,7 +63,7 @@ public class ItemController {
 
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestHeader(USER_ID) Long userId,
-                                         @NotBlank @RequestParam(value = "text") String searchRequest,
+                                         @RequestParam(value = "text") String searchRequest,
                                          @PositiveOrZero @RequestParam(required = false, defaultValue = "0") Integer from,
                                          @Positive @RequestParam(required = false, defaultValue = "20") Integer size
     ) {

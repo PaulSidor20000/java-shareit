@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -118,29 +119,30 @@ class BookingServiceImplIT {
         int from = 0;
         int size = 20;
         long bookerId = 3L;
+        PageRequest page = PageRequest.of(from, size);
 
         String state = "PAST";
-        List<BookingDto> bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        List<BookingDto> bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(bookingDto3), bookingDtosActual);
 
         state = "CURRENT";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "FUTURE";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "WAITING";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "REJECTED";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "ALL";
-        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, from, size);
+        bookingDtosActual = bookingService.getBookerStatistics(bookerId, state, page);
         assertEquals(List.of(bookingDto3), bookingDtosActual);
     }
 
@@ -149,29 +151,30 @@ class BookingServiceImplIT {
         int from = 0;
         int size = 20;
         long ownerId = 1L;
+        PageRequest page = PageRequest.of(from, size);
 
         String state = "PAST";
-        List<BookingDto> bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        List<BookingDto> bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto3, bookingDto2), bookingDtosActual);
 
         state = "CURRENT";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(), bookingDtosActual);
 
         state = "FUTURE";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto1, bookingDto4), bookingDtosActual);
 
         state = "WAITING";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto1), bookingDtosActual);
 
         state = "REJECTED";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto2), bookingDtosActual);
 
         state = "ALL";
-        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, from, size);
+        bookingDtosActual = bookingService.getOwnerStatistics(ownerId, state, page);
         assertEquals(List.of(bookingDto1, bookingDto4, bookingDto3, bookingDto2), bookingDtosActual);
     }
 }

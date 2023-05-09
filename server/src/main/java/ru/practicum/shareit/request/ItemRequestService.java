@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request;
 
+import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.Collection;
@@ -9,7 +10,7 @@ public interface ItemRequestService {
 
     Collection<ItemRequestDto> findAllRequestsOfUser(Long userId);
 
-    Collection<ItemRequestDto> findAllRequestsOfOthers(Long userId, Integer from, Integer size);
+    Collection<ItemRequestDto> findAllRequestsOfOthers(Long userId, PageRequest page);
 
     ItemRequestDto read(Long requestId, Long userId);
 }

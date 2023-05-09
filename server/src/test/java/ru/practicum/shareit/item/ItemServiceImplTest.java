@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -184,7 +185,7 @@ class ItemServiceImplTest {
         when(mockItemRepository.findLastBookings(anySet())).thenReturn(List.of(new BookingShortImpl()));
         when(mockItemMapper.mapForUser(any(Item.class))).thenReturn(new ItemDto());
 
-        List<ItemDto> itemDtosActual = itemService.findAllItemsOfOwner(ownerId, from, size);
+        List<ItemDto> itemDtosActual = itemService.findAllItemsOfOwner(ownerId, page);
 
         assertEquals(new ItemDto(), itemDtosActual.get(0));
     }
@@ -199,7 +200,7 @@ class ItemServiceImplTest {
         when(mockItemRepository.searchByNameAndDescription(anyString(), eq(page))).thenReturn(List.of(item));
         when(mockItemMapper.mapForUser(item)).thenReturn(new ItemDto());
 
-        List<ItemDto> itemDtosActual = itemService.search(query, from, size);
+        List<ItemDto> itemDtosActual = itemService.search(query, page);
 
         assertEquals(new ItemDto(), itemDtosActual.get(0));
         assertEquals(1, itemDtosActual.size());
@@ -212,20 +213,21 @@ class ItemServiceImplTest {
         String query = "";
         PageRequest page = PageRequest.of(from, size);
 
-        List<ItemDto> itemDtosActual = itemService.search(query, from, size);
+        List<ItemDto> itemDtosActual = itemService.search(query, page);
 
         assertEquals(List.of(), itemDtosActual);
         verify(mockItemRepository, never()).searchByNameAndDescription(query, page);
     }
 
+    @Disabled("Validation was removed from this module")
     @Test
     void getPageTest_whenRequestDataNotValid_thenRequestNotValidExceptionThrown() {
         int from = -1;
         int size = 20;
         String query = "";
-        PageRequest page = PageRequest.of(0, 1);
+        PageRequest page = PageRequest.of(from, size);
 
-        assertThrows(RequestNotValidException.class, () -> itemService.search(query, from, size));
+        assertThrows(RequestNotValidException.class, () -> itemService.search(query, page));
         verify(mockItemRepository, never()).searchByNameAndDescription(query, page);
     }
 

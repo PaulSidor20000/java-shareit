@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -152,7 +153,7 @@ class ItemRequestServiceImplTest {
         when(mockItemRepository.findAllItemsByRequestIds(Set.of(1L))).thenReturn(List.of(item));
         when(mockItemRequestMapper.merge(List.of(item), itemRequest)).thenReturn(new ItemRequestDto());
 
-        Collection<ItemRequestDto> itemRequestDtosActual = itemRequestService.findAllRequestsOfOthers(userId, from, size);
+        Collection<ItemRequestDto> itemRequestDtosActual = itemRequestService.findAllRequestsOfOthers(userId, page);
 
         assertEquals(List.of(new ItemRequestDto()), itemRequestDtosActual);
         verify(mockItemRequestMapper).merge(anyList(), any(ItemRequest.class));
@@ -163,19 +164,22 @@ class ItemRequestServiceImplTest {
         int from = 0;
         int size = 20;
         Long userId = 1L;
+        PageRequest page = PageRequest.of(from, size);
         when(mockUserRepository.existsById(anyLong())).thenReturn(false);
 
-        assertThrows(EntityNotFoundException.class, () -> itemRequestService.findAllRequestsOfOthers(userId, from, size));
+        assertThrows(EntityNotFoundException.class, () -> itemRequestService.findAllRequestsOfOthers(userId, page));
         verify(mockItemRequestMapper, never()).merge(anyList(), any(ItemRequest.class));
     }
 
+    @Disabled("Validation was removed from this module")
     @Test
     void findAllRequestsOfOthersTest_whenPageDataNotValid_thenRequestNotValidExceptionThrown() {
         int from = -1;
         int size = 20;
         Long userId = 1L;
+        PageRequest page = PageRequest.of(from, size);
 
-        assertThrows(RequestNotValidException.class, () -> itemRequestService.findAllRequestsOfOthers(userId, from, size));
+        assertThrows(RequestNotValidException.class, () -> itemRequestService.findAllRequestsOfOthers(userId, page));
         verify(mockItemRequestMapper, never()).merge(anyList(), any(ItemRequest.class));
     }
 
